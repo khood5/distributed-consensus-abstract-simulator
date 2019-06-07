@@ -19,7 +19,6 @@ syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
 	cc.clear();
 	syncBFTstate = 0;
 	statusMessageToSelf = nullptr;
-	byzantineFlag = false;
 	notifyMessagesPacket = {};
 	committeeNeighbours = _neighbors;
 	messageToSend = {};
@@ -44,7 +43,6 @@ syncBFT_Peer::syncBFT_Peer(const syncBFT_Peer &rhs) : Peer(rhs),statusMessageToS
 	cc = rhs.cc;
 	syncBFTstate = rhs.syncBFTstate;
 
-	byzantineFlag = rhs.byzantineFlag;
 	notifyMessagesPacket = rhs.notifyMessagesPacket;
 	committeeNeighbours = rhs.committeeNeighbours;
 	messageToSend = rhs.messageToSend;
@@ -71,7 +69,6 @@ syncBFT_Peer& syncBFT_Peer::operator=(const syncBFT_Peer &rhs){
 	cc = rhs.cc;
 	syncBFTstate = rhs.syncBFTstate;
 
-	byzantineFlag = rhs.byzantineFlag;
 	notifyMessagesPacket = rhs.notifyMessagesPacket;
 	committeeNeighbours = rhs.committeeNeighbours;
 	messageToSend = rhs.messageToSend;
@@ -92,7 +89,7 @@ syncBFT_Peer& syncBFT_Peer::operator=(const syncBFT_Peer &rhs){
 
 void syncBFT_Peer::populateOutStream(const syncBFTmessage& msg){
 	for(auto & _neighbor : committeeNeighbours) {
-		Peer<syncBFTmessage> *peer = _neighbor;
+		Peer<syncBFTmessage> *peer = _neighbor.second;
 		Packet<syncBFTmessage> newMessage(std::to_string(iter), peer->id(), _id);
 		newMessage.setBody(msg);
 		_outStream.push_back(newMessage);
@@ -107,8 +104,9 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 
 	newBlockString += "_" + consensusTx;
 	string newBlockHash = sha256(newBlockString);
+//	string newBlockHash = std::to_string(dag.getSize());
 
-	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, byzantineFlag));
+	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine));
 }
 
 void syncBFT_Peer::currentStatusSend(){
@@ -534,8 +532,8 @@ void syncBFT_Peer::refreshInstream(){
 
 void syncBFT_Peer::sendBlock(){
 	for(auto & _neighbor : committeeNeighbours) {
-		Logger::instance()->log("Peer " + id() + " SENDING BLOCK TO " + _neighbor->id() + "\n");
-		Peer<syncBFTmessage> *peer = _neighbor;
+		Logger::instance()->log("Peer " + id() + " SENDING BLOCK TO " + _neighbor.second->id() + "\n");
+		Peer<syncBFTmessage> *peer = _neighbor.second;
 		Packet<syncBFTmessage> newMessage("", peer->id(), _id);
 		messageToSend.peerId = id();
 		messageToSend.dagBlockFlag = true;

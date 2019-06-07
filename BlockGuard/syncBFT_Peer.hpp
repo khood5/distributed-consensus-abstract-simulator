@@ -11,7 +11,6 @@
 #include <queue>
 
 #include "Peer.hpp"
-#include "Blockchain.hpp"
 #include "DAG.hpp"
 
 struct proposal{
@@ -116,9 +115,8 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
 	commitCertificate                               cc;
 	int 											syncBFTstate ;
 	std::unique_ptr<syncBFTmessage>           		statusMessageToSelf;
-	bool 											byzantineFlag ;
 	std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
-	std::vector<Peer<syncBFTmessage>*>				committeeNeighbours;
+	std::map<std::string, Peer<syncBFTmessage>* >	committeeNeighbours;
 	syncBFTmessage                                  messageToSend = {};
 	std::deque<string>                              consensusQueue = {};
 	DAGBlock										*minedBlock;
@@ -139,19 +137,17 @@ public:
 	syncBFT_Peer&									operator=									(const syncBFT_Peer &rhs);
 
 	void 											setDAG										(const DAG &dagChain) { this->dag = dagChain; }
-	void 											setByzantineFlag							(bool flag) { byzantineFlag = flag; }
 	void 											setSyncBFTState								(int status) { syncBFTstate = status; }
-	void 											setCommitteeNeighbours						(std::vector<Peer<syncBFTmessage> *> n) { committeeNeighbours = std::move(n); }
+	void 											setCommitteeNeighbours						(std::map<std::string, Peer<syncBFTmessage>* > n) { committeeNeighbours = std::move(n); }
 	void 											setTerminated								(bool flag){ this->terminated = flag;}
 	void		 									setLeaderId									(std::string id) { this->leaderId = std::move(id); }
 	void		 									setCommitteeSize							(int size) { this->committeeSize = std::move(size); }
 
 	DAG                             				getDAG                           			() { return this->dag; }
-	std::vector<Peer<syncBFTmessage> *> 			getCommitteeNeighbours						() { return committeeNeighbours ; }
+	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						() { return committeeNeighbours; }
 	std::string 									getLeaderId									() { return leaderId; }
 	bool 											getTerminationFlag							() const { return terminated; }
 	std::string 									getConsensusTx								(){ return consensusTx; }
-	bool											isByzantine									() { return byzantineFlag; }
 	bool 											isTerminated								(){ return terminated; }
 
 	void 											createBlock									(const std::set<std::string>&);
