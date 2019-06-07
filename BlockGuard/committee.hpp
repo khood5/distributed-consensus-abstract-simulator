@@ -6,7 +6,7 @@
 #define Committee_hpp
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <vector>
 #include "Peer.hpp"
@@ -119,10 +119,10 @@ void Committee<peer_type>::initiate(){
 	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
 
 	for(int i = 0 ; i< committeePeers.size(); i++){
-		std::vector<Peer<syncBFTmessage> *> neighbours;			//previous group is dissolved when new group is selected
+		std::map<std::string, Peer<syncBFTmessage>* > neighbours;	//previous group is dissolved when new group is selected
 		for(int j = 0; j< committeePeers.size(); j++){
 			if(i != j){
-				neighbours.push_back(committeePeers[j]);
+				neighbours[committeePeers[j]->id()] = committeePeers[j];
 			}
 		}
 		dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
