@@ -30,7 +30,8 @@ class Peer{
 protected:
     std::string                             _id;
     bool                                    _byzantine;
-    
+	bool									_busy;
+
     // type abbreviations
     typedef std::deque<Packet<message> >    aChannel;
     typedef std::string                     peerId;
@@ -39,14 +40,14 @@ protected:
     std::map<std::string, Peer<message>* >  _neighbors; // peers this peer has a link to
     std::deque<Packet<message> >            _inStream;// messages that have arrived at this peer
     std::deque<Packet<message> >            _outStream;// messages waiting to be sent by this peer
-    
+
     // metrics
     int                                     _numberOfMessagesSent;
-    
+
     // logging
     std::ostream                            *_log;
     bool                                    _printNeighborhood;
-    
+
 public:
     Peer                                                    ();
     Peer                                                    (std::string);
@@ -57,7 +58,7 @@ public:
     void                              setLogFile            (std::ostream &o)                   {_log = &o;};
     void                              printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
     void                              printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
-    
+
     // getters
     std::vector<std::string>          neighbors             ()const;
     std::string                       id                    ()const                             {return _id;};
@@ -65,7 +66,9 @@ public:
     int                               getDelayToNeighbor    (std::string id)const;
     int                               getMessageCount       ()const                             {return _numberOfMessagesSent;};
     virtual bool					  isByzantine			()const                             {return _byzantine;};
-    
+	virtual bool					  isBusy				()									{ return _busy; }
+	virtual void					  setBusy				(bool busy)							{ _busy= busy; }
+
     // mutators
     void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
     void                              addNeighbor           (Peer &newNeighbor, int delay);
@@ -83,12 +86,12 @@ public:
     void                              transmit              ();
     // preform one step of the Consensus message with the messages in inStream
     virtual void                      preformComputation    ()=0;
-    
+
     void                              log                   ()const;
     std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
 
-    // == and != compare all attributes 
+    // == and != compare all attributes
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
     // greater and less then are based on peer id (standard string comparison)
@@ -120,6 +123,7 @@ Peer<message>::Peer(){
     _byzantine = false;
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
+	_busy = false;
 }
 
 template <class message>
@@ -134,6 +138,7 @@ Peer<message>::Peer(std::string id){
     _byzantine = false;
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
+	_busy = false;
 }
 
 template <class message>
@@ -148,6 +153,7 @@ Peer<message>::Peer(const Peer &rhs){
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
+	_busy = rhs._busy;
 }
 
 template <class message>
@@ -175,12 +181,12 @@ void Peer<message>::send(Packet<message> outMessage){
 // called on sender
 template <class message>
 void Peer<message>::transmit(){
-    // send all messages to there destantion peer channels  
+    // send all messages to there destantion peer channels
     while(!_outStream.empty()){
-        
+
         Packet<message> outMessage = _outStream.front();
         _outStream.pop_front();
-        
+
         // if sent to self loop back next round
         if(_id == outMessage.targetId()){
             outMessage.setDelay(1);
@@ -235,6 +241,8 @@ int Peer<message>::getDelayToNeighbor(std::string id)const{
 
 template <class message>
 Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
+	if(this == &rhs)
+		return *this;
     _id = rhs._id;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
@@ -245,7 +253,8 @@ Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
-    
+	_busy = rhs._busy;
+
     return *this;
 }
 
