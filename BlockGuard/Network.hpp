@@ -47,7 +47,9 @@ protected:
 	peer_type*							getPeerById			(std::string);
 
 public:
-    Network                                                 ();
+	int 								peerCount = 0;
+
+	Network                                                 ();
     Network                                                 (const Network<type_msg,peer_type>&);
     ~Network                                                ();
 
@@ -181,7 +183,8 @@ std::string Network<type_msg,peer_type>::getUniqueId(){
     while(idTaken(id)){
         id = createId();
     }
-    
+
+	return "P"+std::to_string(peerCount++);
     return id;
 }
 
