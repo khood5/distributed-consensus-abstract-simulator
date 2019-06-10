@@ -420,6 +420,11 @@ void DS_bitcoin(const char ** argv){
 
 		if(status == Mining){
 			for(auto & currentCommittee : currentCommittees){
+				Logger::instance()->log("COMMITTEE MEMBERS ARE \n");
+				Logger::instance()->log(std::to_string(currentCommittee->size()));
+				for(auto &a: (currentCommittee)->getCommitteePeers()){
+					Logger::instance()->log(a->id() + " ");
+				}
 				currentCommittee->receive();
 				currentCommittee->performComputation();
 				currentCommittee->transmit();
@@ -429,6 +434,7 @@ void DS_bitcoin(const char ** argv){
 			bool consensus = true;
 			auto it = currentCommittees.begin();
 			while(it != currentCommittees.end()) {
+				Logger::instance()->log("DONE COMPUTATION, CHECKING FOR CONSENSUS\n");
 				if(!(*it)->getConsensusFlag()) {
 					consensus = false;
 					break;
@@ -437,13 +443,16 @@ void DS_bitcoin(const char ** argv){
 			}
 			if (consensus){
 				//	send blocks
+				Logger::instance()->log("CONSENSUS REACHED\n");
 				for(auto & currentCommittee : currentCommittees){
 					//	propogate the block to whole network except the committee itself.
 					//	set neighbours
 					std::vector<std::string> peerIds = currentCommittee->getCommitteePeerIds();
 					std::map<std::string, Peer<DS_bCoinMessage>* > neighbours;
+					Logger::instance()->log("FIRST MINER INDEX " + std::to_string(currentCommittee->getFirstMinerIndex()) + "\n");
 
 					DS_bCoin_Peer * minerPeer = currentCommittee->getCommitteePeers()[currentCommittee->getFirstMinerIndex()];
+					Logger::instance()->log("MINER PEER IS " + minerPeer->id() + "\n");
 
 					for(int j = 0; j < n.size(); j++) {
 						if(minerPeer->id()!=n[j]->id()) {
@@ -458,14 +467,17 @@ void DS_bitcoin(const char ** argv){
 						assert(!neighbours.empty());
 					minerPeer->setCommitteeNeighbours(neighbours);
 					minerPeer->sendBlock();
+					Logger::instance()->log("TRANSMITTING MINED BLOCK FROM PEER " + minerPeer->id() + "\n");
 					minerPeer->transmit();
 				}
 				for(auto committee: currentCommittees ){
 					delete committee;
 				}
 				currentCommittees.clear();
+				Logger::instance()->log("ALL COMMITTEE CONSENSUS REACHED\n");
 
 				status =Collecting;
+				Logger::instance()->log("START COLLECTING IN ITERATION " + std::to_string(i) + "\n");
 
 				collectInterval = 2 * avgDelay;
 			}
@@ -514,10 +526,9 @@ void DS_bitcoin(const char ** argv){
 
 					p = n[randIndex];
 					consensusGroup = n.setPeersForConsensusDAG(p, securityLevel);
-					if(!consensusGroup.empty())
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
-						Logger::instance()->log("COMMITTEE FORMED\n");
+						Logger::instance()->log("CONSENSUS GROUP FORMED\n");
 						bCoin_Committee *co = new bCoin_Committee(consensusGroup, p, txQueue.front(), securityLevel);
 						concurrentGroupCount++;
 						txQueue.pop_front();
@@ -526,6 +537,10 @@ void DS_bitcoin(const char ** argv){
 						securityLevelCount[securityLevel]++;
 						if(co->getByzantineRatio()>=0.5){
 							defeatedCommittee[securityLevel]++;
+						}
+
+						for(auto &s: consensusGroup){
+							Logger::instance()->log(" " + s->id() + std::to_string(s->isByzantine()) + "\n");
 						}
 					}
 				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
@@ -539,6 +554,7 @@ void DS_bitcoin(const char ** argv){
 			Logger::instance()->log("COLLECTION COMPLETE IN ITERATION " + std::to_string(i) + ":\t START MINING \n");
 
 			if(!currentCommittees.empty()){
+				Logger::instance()->log("NUMBER OF COMMITTEES " + std::to_string(currentCommittees.size()) + "\n");
 				for(auto &committee: currentCommittees){
 					committee->initiate();
 				}

@@ -4,6 +4,7 @@
 
 #include "DS_bCoin_Peer.hpp"
 #include "hash.hpp"
+#include "Logger.hpp"
 #include <cassert>
 
 std::default_random_engine DS_bCoin_Peer::generator;
@@ -32,6 +33,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs) {
 }
 
 bool DS_bCoin_Peer::mineBlock() {
+	Logger::instance()->log("MINING\n");
 	if(mineNextAt == 0){
 
 		std::vector<string> hashesToConnectTo=dag.getTips();
@@ -57,11 +59,13 @@ bool DS_bCoin_Peer::mineBlock() {
 }
 
 void DS_bCoin_Peer::preformComputation(){
+	Logger::instance()->log("INSIDE PREFORM COMPUTATION " + id() + "\n");
 	receiveMsg();
 	if(!_busy||consensusTx.empty())
 		return;					//	not busy, not chosen in a committee
 	bool mined = mineBlock();
 	if (mined){
+		Logger::instance()->log("+++++++++++++++++++++++++++++++++++++++++++MINED BY+++++++++++++++++++++++++++++++++" + id() + " BYZANTINE " + std::to_string(isByzantine()) + " mined " + consensusTx + "\n");
 		_busy = false;
 	}
 	mineNextAt--;
@@ -76,7 +80,9 @@ void DS_bCoin_Peer::receiveMsg(){
 	//	DAG blocks are handled here
 	for(auto & i : _inStream){
 		if(i.getMessage().dagBlockFlag){
+			Logger::instance()->log("BLOCK MESSAGE RECEIVED FROM PEER " + i.getMessage().peerId + " BY " + id());
 			if(_busy){
+				Logger::instance()->log("BLOCK NOT MINED YET, SO ADDING\n");
 				//	block not mined yet
 				_busy = false;
 				minedBlock = new DAGBlock(i.getMessage().dagBlock);
@@ -87,6 +93,7 @@ void DS_bCoin_Peer::receiveMsg(){
 
 				//	not busy means peer already finished working on this transaction.
 				//	a byzantine peer might have mined the block after or at the same time as the honest one and busy flag will be false because he HAS mined.
+				Logger::instance()->log("COPYING THE BLOCK MINED , DOING NOTHING\n");
 				delete minedBlock;
 				minedBlock = new DAGBlock(i.getMessage().dagBlock);
 				dagBlocks.push_back(*minedBlock);
@@ -98,8 +105,10 @@ void DS_bCoin_Peer::receiveMsg(){
 		}
 
 		if(i.getMessage().txFlag){
+			Logger::instance()->log("TRANSACTION MESSAGE RECEIVED " + i.getMessage().message[0] + " BY " + id() + "\n");
 			if(minedBlock){
 				//	this means the block for this transaction has already been mined.
+				Logger::instance()->log("BLOCK WAS RECEIVED FIRST FOR THIS TRANSACTION\n");
 				continue;
 			}
 			consensusTx = i.getMessage().message[0];
@@ -109,7 +118,7 @@ void DS_bCoin_Peer::receiveMsg(){
 }
 
 void DS_bCoin_Peer::sendBlock(){
-
+	Logger::instance()->log("SENDING BLOCK FROM PEER " + id() + "\n");
 	if(!messageToSend.txFlag && messageToSend.dagBlockFlag){
 		for(auto & _neighbor : committeeNeighbours) {
 			Peer<DS_bCoinMessage> *peer = _neighbor.second;
@@ -129,6 +138,7 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 	txMessage.message.push_back(tx+"_"+id());
 	txMessage.txFlag = true;
 	for(auto &committeePeer: committeeMembers){
+		Logger::instance()->log("Peer "+id()+" transmitting the transaction " + tx + " to " + committeePeer->id() + "\n");
 
 		if(!(committeePeer->id()==id())){
 			Packet<DS_bCoinMessage> newMessage("", committeePeer->id(), id());
@@ -144,6 +154,7 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 }
 
 void DS_bCoin_Peer::updateDAG() {
+	Logger::instance()->log("UPDATING DAG IN PEER " + id() + "\n");
 	assert(consensusQueue.empty());
 	//	process self mined block
 	if(minedBlock!= nullptr){
@@ -172,6 +183,7 @@ void DS_bCoin_Peer::updateDAG() {
 	}
 
 	if(!dagBlocks.empty()){
+		Logger::instance()->log("DAGBLOCKS SIZE IS " + std::to_string(dagBlocks.size()) + "\n");
 		sort( dagBlocks.begin( ), dagBlocks.end( ), [ ]( const auto& lhs, const auto& rhs )
 		{
 			return lhs.getData() < rhs.getData();
@@ -202,7 +214,7 @@ void DS_bCoin_Peer::addToBlocks(){
 
 void DS_bCoin_Peer::clearConsensusTx(){
 	if(consensusTx.empty()){
-//		std::cerr<<"THE TX HAS NOT BEEN RECEIVED YET"<<std::endl;
+		Logger::instance()->log("THE TX HAS NOT BEEN RECEIVED YET\n");
 	}
 	consensusTx.clear();
 }

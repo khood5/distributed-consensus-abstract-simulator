@@ -55,6 +55,7 @@ void bCoin_Committee::performComputation(){
 		if(!committeePeer->isTerminated())
 			committeePeer->preformComputation();
 	}
+	Logger::instance()->log("PROPAGATING\n");
 	propagateBlock();
 	checkForConsensus();
 }
@@ -70,9 +71,9 @@ bool bCoin_Committee::checkForConsensus(){
 	}
 
 	if(consensusFlag)
-		std::cerr<<"CONSENSUS REACHED FOR TX "<<tx<<std::endl;
+		Logger::instance()->log("CONSENSUS REACHED FOR TX " + tx + "\n");
 	else
-		std::cerr<<"NO CONSENSUS FOR TX "<<tx<<std::endl;
+		Logger::instance()->log("NO CONSENSUS FOR TX " + tx + "\n");
 
 	return consensusFlag;
 }
@@ -85,6 +86,7 @@ void bCoin_Committee::propagateBlock(){
 				if(byzantineRatio>=0.5){
 					//	bad block, allow propogation
 					if(firstMinerIndex == -1){
+						Logger::instance()->log("REACHED MORE THAN HALF BYZANTINE \n");
 						moreThanHalfByzantineCount.push_back(securityLevel);
 
 						firstMinerIndex = i;
@@ -95,6 +97,7 @@ void bCoin_Committee::propagateBlock(){
 						committeePeers[i]->addToBlocks();
 
 					}else{
+						Logger::instance()->log(committeePeers[firstMinerIndex]->id() + " Already mined this block \n");
 						committeePeers[i]->setTerminated(true);
 						committeePeers[i]->clearConsensusTx();
 					}
@@ -102,6 +105,7 @@ void bCoin_Committee::propagateBlock(){
 				}else if(byzantineRatio <0.5){
 					//	reset only if this peer is the first one to mine the block
 					if(firstMinerIndex == -1){
+						Logger::instance()->log("REACHED LESS THAN HALF BYZANTINE, RESETTING MINING CLOCK FOR TRANSACTION " + tx + "\n");
 						for(auto & committeePeer : committeePeers){
 							committeePeer->resetMiningClock();
 						}
@@ -109,12 +113,14 @@ void bCoin_Committee::propagateBlock(){
 						//	exit the loop
 						break;
 					}else{
-//						std::cerr<<"PEER "<<committeePeers[i]->id()<<" ALREADY MINED A BLOCK IN THIS COMMITTEE"<<std::endl;
+						Logger::instance()->log("PEER " + committeePeers[i]->id() + " ALREADY MINED A BLOCK IN THIS COMMITTEE. \n");
 					}
 				}
 			}else{
+				Logger::instance()->log("REACHED NO BYZANTINE\n");
 				if(firstMinerIndex == -1)
 				{
+					Logger::instance()->log("SELF MINED\n");
 					firstMinerIndex = i;
 					committeePeers[i]->sendBlock();
 					committeePeers[i]->addToBlocks();
@@ -123,6 +129,7 @@ void bCoin_Committee::propagateBlock(){
 
 				} else{
 //					delete the mined block, block will be received from the previous miner
+					Logger::instance()->log("NOT SELF MINED\n");
 					committeePeers[i]->deleteMinedBlock();
 				}
 			}
