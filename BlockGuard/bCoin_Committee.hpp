@@ -17,7 +17,7 @@ private:
 	int 									firstMinerIndex = -1;
 
 public:
-	bCoin_Committee															(std::vector<DS_bCoin_Peer *> , DS_bCoin_Peer *, std::string , int);
+	bCoin_Committee															(std::vector<DS_bCoin_Peer *> , DS_bCoin_Peer *, Transaction* , int);
 	bCoin_Committee															(const bCoin_Committee&);
 	bCoin_Committee&						operator=						(const bCoin_Committee &rhs);
 
@@ -31,7 +31,7 @@ public:
 
 };
 
-bCoin_Committee::bCoin_Committee(std::vector<DS_bCoin_Peer *> peers, DS_bCoin_Peer *sender, std::string transaction, int sLevel) : Committee<DS_bCoin_Peer>(peers, sender, transaction, sLevel){
+bCoin_Committee::bCoin_Committee(std::vector<DS_bCoin_Peer *> peers, DS_bCoin_Peer *sender, Transaction* transaction, int sLevel) : Committee<DS_bCoin_Peer>(peers, sender, transaction, sLevel){
 	for(auto & committeePeer : committeePeers){
 		committeePeer->setTerminated(false);
 	}
@@ -71,9 +71,9 @@ bool bCoin_Committee::checkForConsensus(){
 	}
 
 	if(consensusFlag)
-		Logger::instance()->log("CONSENSUS REACHED FOR TX " + tx + "\n");
+		Logger::instance()->log("CONSENSUS REACHED FOR TX " + tx->getId() + "\n");
 	else
-		Logger::instance()->log("NO CONSENSUS FOR TX " + tx + "\n");
+		Logger::instance()->log("NO CONSENSUS FOR TX " + tx->getId() + "\n");
 
 	return consensusFlag;
 }
@@ -105,7 +105,7 @@ void bCoin_Committee::propagateBlock(){
 				}else if(byzantineRatio <0.5){
 					//	reset only if this peer is the first one to mine the block
 					if(firstMinerIndex == -1){
-						Logger::instance()->log("REACHED LESS THAN HALF BYZANTINE, RESETTING MINING CLOCK FOR TRANSACTION " + tx + "\n");
+						Logger::instance()->log("REACHED LESS THAN HALF BYZANTINE, RESETTING MINING CLOCK FOR TRANSACTION " + tx->getId() + "\n");
 						for(auto & committeePeer : committeePeers){
 							committeePeer->resetMiningClock();
 						}
@@ -138,7 +138,7 @@ void bCoin_Committee::propagateBlock(){
 }
 
 void bCoin_Committee::initiate(){
-	dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
+	dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
 
 	for(int i = 0 ; i< committeePeers.size(); i++){
 		committeePeers[i]->resetMineNextAt();

@@ -22,6 +22,7 @@
 #include "Logger.hpp"
 #include "DS_bCoin_Peer.hpp"
 #include "bCoin_Committee.hpp"
+#include "Transaction.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -357,6 +358,7 @@ void DS_bitcoin(const char ** argv){
 
 	std::vector<bCoin_Committee *> currentCommittees;
 	std::deque<std::string> txQueue;
+	std::deque<Transaction *> txQueueT;
 
 	//	for printing security levels
 	std::vector<int> securityLevels;
@@ -415,7 +417,9 @@ void DS_bitcoin(const char ** argv){
 		if( i%txRate == 0  ){
 			//	create transactions every 5 iterations
 			//	insert a transaction to queue
-			txQueue.push_back("Tx_"+std::to_string(i));
+			Transaction *a = new Transaction("Tx_"+std::to_string(i), i);
+			txQueueT.push_back(a);
+			n.transactions.push_back(a);
 		}
 
 		if(status == Mining){
@@ -437,7 +441,12 @@ void DS_bitcoin(const char ** argv){
 				Logger::instance()->log("DONE COMPUTATION, CHECKING FOR CONSENSUS\n");
 				if(!(*it)->getConsensusFlag()) {
 					consensus = false;
-					break;
+//					break;
+				} else{
+					if((*it)->getTx()->getConfirmedAt() == -1){
+						//	confirmed at time not set yet. set it
+						(*it)->getTx()->setConfirmedAt(i);
+					}
 				}
 				++it;
 			}
@@ -513,7 +522,7 @@ void DS_bitcoin(const char ** argv){
 				//	n.shuffleByzantines (1);
 			}
 
-			if(!txQueue.empty()){
+			if(!txQueueT.empty()){
 				//	select a random peer
 				int randIndex;
 				DS_bCoin_Peer *p;
@@ -529,9 +538,9 @@ void DS_bitcoin(const char ** argv){
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
 						Logger::instance()->log("CONSENSUS GROUP FORMED\n");
-						bCoin_Committee *co = new bCoin_Committee(consensusGroup, p, txQueue.front(), securityLevel);
+						bCoin_Committee *co = new bCoin_Committee(consensusGroup, p, txQueueT.front(), securityLevel);
 						concurrentGroupCount++;
-						txQueue.pop_front();
+						txQueueT.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
 						securityLevelCount[securityLevel]++;
@@ -543,7 +552,7 @@ void DS_bitcoin(const char ** argv){
 							Logger::instance()->log(" " + s->id() + std::to_string(s->isByzantine()) + "\n");
 						}
 					}
-				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
+				}while(!consensusGroup.empty() && !txQueueT.empty()); //build committees until a busy peer is jumped on.
 				consensusGroupCount.push_back(concurrentGroupCount);
 			}
 
@@ -575,7 +584,7 @@ void DS_bitcoin(const char ** argv){
 	for_each( someByzantineCount.begin(), someByzantineCount.end(), [&someByzantineDups]( int val ){ someByzantineDups[val]++; } );
 	for(auto l : securityLevels){
 		if(someByzantineDups.count(l)){
-			Logger::instance()->log(std::to_string(l) + " " + std::to_string(someByzantineDups[l]) + "\n");
+			Logger::instance()->log(std::to_string(l) + "\t" + std::to_string(someByzantineDups[l]) + "\n");
 		} else
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
@@ -587,7 +596,7 @@ void DS_bitcoin(const char ** argv){
 
 	for(auto l : securityLevels){
 		if(moreThanHalfByzantineDups.count(l)){
-			Logger::instance()->log(std::to_string(l) + " " + std::to_string(moreThanHalfByzantineDups[l]) + "\n");
+			Logger::instance()->log(std::to_string(l) + "\t" + std::to_string(moreThanHalfByzantineDups[l]) + "\n");
 		} else
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
@@ -601,7 +610,7 @@ void DS_bitcoin(const char ** argv){
 
 	for(auto l : securityLevels){
 		if(securityLevelCount.count(l)){
-			Logger::instance()->log(std::to_string(l) + " " + std::to_string(securityLevelCount[l]) + "\n");
+			Logger::instance()->log(std::to_string(l) + "\t" + std::to_string(securityLevelCount[l]) + "\n");
 		} else
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
@@ -610,7 +619,7 @@ void DS_bitcoin(const char ** argv){
 
 	for(auto l : securityLevels){
 		if(defeatedCommittee.count(l)){
-			Logger::instance()->log(std::to_string(l) + " " + std::to_string(defeatedCommittee[l]) + "\n");
+			Logger::instance()->log(std::to_string(l) + "\t" + std::to_string(defeatedCommittee[l]) + "\n");
 		} else
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
@@ -619,7 +628,7 @@ void DS_bitcoin(const char ** argv){
 
 	for(auto l : securityLevels){
 		if(defeatedCommittee.count(l)){
-			Logger::instance()->log(std::to_string(l) +  "" + std::to_string((double)defeatedCommittee[l]/securityLevelCount[l]) + "\n");
+			Logger::instance()->log(std::to_string(l) +  "\t" + std::to_string((double)defeatedCommittee[l]/(double)securityLevelCount[l]) + "\n");
 		} else
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
@@ -629,13 +638,25 @@ void DS_bitcoin(const char ** argv){
 		if(moreThanHalfByzantineDups.count(l)){
 			Logger::instance()->log(std::to_string(l) + " " + std::to_string(float(moreThanHalfByzantineDups[l])/securityLevelCount[l]*100) + "\n");
 		} else
-			Logger::instance()->log(std::to_string(l) + " 0");
+			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
 
 	Logger::instance()->log("CONFIRMATION RATE\n");
 	for(auto cr : confirmationRate){
 		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
 	}
+
+	Logger::instance()->log("AVERAGE WAITING TIME\n");
+
+	double avgWaitTime = 0;
+	double confirmedCount = 0;
+	for(auto tx : n.transactions){
+		if(-1 != tx->getConfirmedAt()){
+			avgWaitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
+			confirmedCount++;
+		}
+	}
+	Logger::instance()->log(std::to_string(avgWaitTime/confirmedCount) + "\n");
 
 	for(auto committee : currentCommittees){
 		delete committee;
@@ -664,6 +685,7 @@ void syncBFT(const char ** argv){
 
 	std::vector<syncBFT_Committee *> currentCommittees;
 	std::deque<std::string> txQueue;
+	std::deque<Transaction *> txQueueT;
 
 //	for printing security levels
 	std::vector<int> securityLevels;
@@ -712,6 +734,9 @@ void syncBFT(const char ** argv){
 
 		if( i%txRate == 0  ){
 			txQueue.push_back("Tx_"+std::to_string(i));
+			Transaction *a = new Transaction("Tx_"+std::to_string(i), i);
+			txQueueT.push_back(a);
+			n.transactions.push_back(a);
 		}
 		Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
 		if(status == WAITING_FOR_TX){
@@ -824,7 +849,7 @@ void syncBFT(const char ** argv){
 				n.shuffleByzantines (peersCount/10);
 			}
 
-			if(!txQueue.empty()){
+			if(!txQueueT.empty()){
 				//	select a random peer
 				int randIndex;
 				syncBFT_Peer *p;
@@ -839,23 +864,23 @@ void syncBFT(const char ** argv){
 
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
-						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueue.front(), securityLevel);
+						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueueT.front(), securityLevel);
 						if(co->getByzantineRatio()>= 0.5){
 							co->refreshPeers();
 							defeatedCommittee[securityLevel]++;
-							txQueue.pop_front();
+							txQueueT.pop_front();
 							delete co;
 
 						}else{
 							concurrentGroupCount++;
-							txQueue.pop_front();
+							txQueueT.pop_front();
 							currentCommittees.push_back(co);
 							consensusGroups.push_back(consensusGroup);
 							securityLevelCount[securityLevel]++;
 						}
 
 					}
-				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
+				}while(!consensusGroup.empty() && !txQueueT.empty()); //build committees until a busy peer is jumped on.
 
 				consensusGroupCount.push_back(concurrentGroupCount);
 			}

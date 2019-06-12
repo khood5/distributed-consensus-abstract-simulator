@@ -21,6 +21,7 @@
 #include <memory>
 #include "Peer.hpp"
 #include "DAG.hpp"
+#include "Transaction.hpp"
 
 static const std::string POISSON = "POISSON";
 static const std::string RANDOM  = "RANDOM";
@@ -48,6 +49,7 @@ protected:
 
 public:
 	int 								peerCount = 0;
+	std::vector<Transaction *>			transactions;
 
 	Network                                                 ();
     Network                                                 (const Network<type_msg,peer_type>&);
@@ -91,8 +93,18 @@ public:
 	void 								buildInitialDAG		();
 	std::vector<peer_type *>			setPeersForConsensusDAG(Peer<type_msg> *,int);
 	int									pickSecurityLevel	(int);
+	Transaction*						findTxById(std::string id);
 
 };
+
+template<class type_msg, class peer_type>
+Transaction* Network<type_msg,peer_type>::findTxById(std::string id) {
+	for(auto &tx: transactions){
+		if(tx->getId() == id)
+			return tx;
+	}
+	return nullptr;
+}
 
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(){
@@ -127,12 +139,16 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _minDelay = rhs._minDelay;
     _distribution = rhs._distribution;
     _log = rhs._log;
+    transactions = rhs.transactions;
 }
 
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::~Network(){
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
+    }
+    for(int i = 0; i< transactions.size(); i++){
+    	delete transactions[i];
     }
 }
 
