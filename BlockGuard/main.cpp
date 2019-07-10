@@ -24,6 +24,10 @@
 // PBFT
 #include "PBFT_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
+
+#include "DS_PBFT_Peer.hpp"
+#include "DS_PBFT.hpp"
+#include "PBFT_Committee.hpp"
 // POW
 #include "bCoin_Peer.hpp"
 #include "bCoin_Committee.hpp"
@@ -45,6 +49,7 @@ void Example(std::ofstream &logFile);
 void syncBFT(const char ** argv);
 void bitcoin(std::ofstream &,int );
 void DS_bitcoin(const char ** argv);
+void run_DS_PBFT(const char ** argv);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -89,7 +94,14 @@ int main(int argc, const char * argv[]) {
 		for(int i = 0; i< runs; i++){
 			DS_bitcoin(argv);
 		}
-    }
+    }else if (algorithm == "DS_PBFT") {
+		//	Program arguments: DS_PBFT asdf 1 1 1 64 100 0.7 1
+		std::ofstream out;
+		int runs = std::stoi(argv[3]);
+		for(int i = 0; i< runs; i++){
+			run_DS_PBFT(argv);
+		}
+	}
 
     return 0;
 }
@@ -722,7 +734,76 @@ void syncBFT(const char ** argv){
 
 }
 
+void run_DS_PBFT(const char ** argv){
+	std::string filePath	= 	argv[2];
+	int delay 			= 	std::stoi(argv[4]);
+	int byzantineOrNot 		= 	std::stoi(argv[5]);
+	int peersCount 			= 	std::stoi(argv[6]);
+	int iterationCount 		= 	std::stoi(argv[7]);
+	double tolerance 		= 	std::stod(argv[8]);
+	int txRate 				= 	std::stoi(argv[9]);
 
+	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(delay)+"_peerCount"+std::to_string(peersCount)
+						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
+
+	int numberOfPeers = peersCount;
+	double fault = 0.3;
+
+
+	std::cout<< std::endl<< "########################### DS_PBFT ###########################"<< std::endl;
+	DS_PBFT instance = DS_PBFT();
+	instance.setToRandom();
+	instance.setMaxDelay(delay);
+	instance.setSquenceNumber(999);
+	instance.initNetwork(numberOfPeers);
+	instance.setFaultTolerance(FAULT);
+	instance.setDelay(delay);
+	instance.makeByzantines(numberOfPeers*tolerance);
+
+	instance.status = COLLECTING;
+	int numberOfRequests = 0;
+	for(int i =0; i < iterationCount; i++){
+
+		if(i%txRate == 0){
+			std::cerr<<"Making a request"<<std::endl;
+			instance.makeRequest();numberOfRequests++;
+		}
+
+		std::cerr<<"------------------ITERATION-----------------"<<i<<std::endl;
+		instance.run(i);
+//		instance.receive();
+//		std::cout<< 'r'<< std::flush;
+//		instance.preformComputation();
+//		std::cout<< 'p'<< std::flush;
+//		instance.transmit();
+//		std::cout<< 't'<< std::flush;
+	}
+
+	for(int i =0; i<instance.size();i++){
+		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n");
+		std::cerr<<"PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n"<<std::endl;
+	}
+
+	std::map<int, std::map<int, int>>::iterator it;
+
+	for(it =instance.averageWaitingTimeByIteration.begin(); it!= instance.averageWaitingTimeByIteration.end();it++){
+		std::map<int, int>::iterator ite;
+		std::cerr<<it->first<<std::endl;
+		for(ite =it->second.begin(); ite!= it->second.end();ite++){
+			std::cerr<<ite->first<< " : "<<ite->second<<std::endl;
+		}
+	}
+
+
+	std::map<int, std::vector<PBFT_Message>>::iterator iit;
+
+	for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
+		std::cerr<<"Iteration "<<iit->first<<std::endl;
+		for(const auto& msg:iit->second){
+			std::cerr<<iit->first<<" - "<< msg.submission_round<<" = "<<iit->first - msg.submission_round<<std::endl;
+		}
+	}
+}
 //////////////////////////////////////////////
 // util functions
 //

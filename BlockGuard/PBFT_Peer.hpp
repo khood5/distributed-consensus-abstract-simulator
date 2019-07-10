@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <cassert>
 #include <list>
+#include "DAGBlock.hpp"
+
 #include "Peer.hpp"
 
 
@@ -64,6 +66,8 @@ struct PBFT_Message{
     // status info
     bool                byzantine;
     bool                defeated;
+
+	DAGBlock			dagBlock;
 
     PBFT_Message(){
         submission_round= 0;
