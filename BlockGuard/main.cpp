@@ -750,6 +750,15 @@ void run_DS_PBFT(const char ** argv){
 	double fault = 0.3;
 
 
+	//	for printing security levels
+	std::vector<int> securityLevels;
+	securityLevels.push_back(peersCount/16);
+	securityLevels.push_back(peersCount/8);
+	securityLevels.push_back(peersCount/4);
+	securityLevels.push_back(peersCount/2);
+	securityLevels.push_back(peersCount/1);
+
+
 	std::cout<< std::endl<< "########################### DS_PBFT ###########################"<< std::endl;
 	DS_PBFT instance = DS_PBFT();
 	instance.setToRandom();
@@ -760,16 +769,24 @@ void run_DS_PBFT(const char ** argv){
 	instance.setDelay(delay);
 	instance.makeByzantines(numberOfPeers*tolerance);
 
+	std::map<int, double> confirmationPerIteration;
+	int prevConfirmationSize = peersCount + 1;
+
 	instance.status = COLLECTING;
 	int numberOfRequests = 0;
 	for(int i =0; i < iterationCount; i++){
+		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
+		//	number of transactions introduced will be 1/txRate
+//		confirmation rate, rolling average
+		confirmationPerIteration[i] = (double)(instance[0]->getDAG().getSize() - prevConfirmationSize);
+		prevConfirmationSize = instance[0]->getDAG().getSize();
 
 		if(i%txRate == 0){
-			std::cerr<<"Making a request"<<std::endl;
+			Logger::instance()->log("Making a request\n");
 			instance.makeRequest();numberOfRequests++;
 		}
 
-		std::cerr<<"------------------ITERATION-----------------"<<i<<std::endl;
+		Logger::instance()->log("------------------ITERATION-----------------\n");
 		instance.run(i);
 //		instance.receive();
 //		std::cout<< 'r'<< std::flush;
@@ -779,29 +796,98 @@ void run_DS_PBFT(const char ** argv){
 //		std::cout<< 't'<< std::flush;
 	}
 
+
+	Logger::instance()->log("FINALLY\n");
+
+
 	for(int i =0; i<instance.size();i++){
 		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n");
-		std::cerr<<"PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n"<<std::endl;
 	}
 
-	std::map<int, std::map<int, int>>::iterator it;
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(instance[0]->getDAG().getSize() - numberOfPeers - 1)+"\n");
 
-	for(it =instance.averageWaitingTimeByIteration.begin(); it!= instance.averageWaitingTimeByIteration.end();it++){
-		std::map<int, int>::iterator ite;
-		std::cerr<<it->first<<std::endl;
-		for(ite =it->second.begin(); ite!= it->second.end();ite++){
-			std::cerr<<ite->first<< " : "<<ite->second<<std::endl;
+	Logger::instance()->log("DEFEATED COMMITTEES COUNT \n");
+
+	std::map<int, int> defeatedCommitteesBySecurityLevel;
+	for_each( instance.defeatedCommittees.begin(), instance.defeatedCommittees.end(), [&defeatedCommitteesBySecurityLevel]( int val ){ defeatedCommitteesBySecurityLevel[val]++; } );
+
+
+	for(auto l : securityLevels){
+		if(defeatedCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) + " " + std::to_string(defeatedCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("TOTAL COMMITTEES COUNT \n");
+
+	std::map<int, int> totalCommitteesBySecurityLevel;
+	for_each( instance.totalCommittees.begin(), instance.totalCommittees.end(), [&totalCommitteesBySecurityLevel]( int val ){ totalCommitteesBySecurityLevel[val]++; } );
+
+
+	for(auto l : securityLevels){
+		if(totalCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) + " " + std::to_string(totalCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("RATIO OF DEFEATED COMMITTEES\n");
+	for(auto l : securityLevels){
+		if(defeatedCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) +  " " + std::to_string((double)defeatedCommitteesBySecurityLevel[l]/totalCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("CONFIRMATION RATE, ROLLING TIMELINE\n");
+	for(auto cr : confirmationPerIteration){
+		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
+	}
+	int rangeStart = 0;
+	std::vector<double> rollingAvgThroughputTimeline;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		double confirmations = 0;
+		for(int i = rangeStart; i<rangeEnd; i++){
+			confirmations+= confirmationPerIteration[i];
 		}
+		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
 	}
 
+	for(auto timeline: rollingAvgThroughputTimeline){
+		Logger::instance()->log("ROLLING TIMELINE THROUGHPUT  " + std::to_string(timeline)+"\n");
+	}
 
 	std::map<int, std::vector<PBFT_Message>>::iterator iit;
 
 	for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
-		std::cerr<<"Iteration "<<iit->first<<std::endl;
+		Logger::instance()->log("Iteration "+std::to_string(iit->first)+"\n");
 		for(const auto& msg:iit->second){
-			std::cerr<<iit->first<<" - "<< msg.submission_round<<" = "<<iit->first - msg.submission_round<<std::endl;
+			Logger::instance()->log(std::to_string(iit->first)+" - "+ std::to_string(msg.submission_round) + " = " + std::to_string(iit->first - msg.submission_round) + "\n");
 		}
+	}
+
+//	rolling average waiting time
+	std::vector<double> rollingAvgWaitTime;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		int confirmed = 0;
+		double waitTime = 0;
+		for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
+			if( rangeStart < iit->first && iit->first <= rangeEnd){
+				for(const auto& msg:iit->second){
+					confirmed++;
+					waitTime+=  iit->first - msg.submission_round;
+				}
+			}
+		}
+		rollingAvgWaitTime.push_back(waitTime/confirmed);
+	}
+
+	Logger::instance()->log("ROLLING AVERAGE Throughput\n");
+	for(auto waitTime: rollingAvgWaitTime){
+		Logger::instance()->log("ROLLING THROUGHPUT " + std::to_string(waitTime)+"\n");
 	}
 }
 //////////////////////////////////////////////

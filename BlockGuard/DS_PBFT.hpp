@@ -2,8 +2,8 @@
 // Created by srai on 6/27/19.
 //
 
-#ifndef MULTI_LEVEL_SECURE_BLOCKCHAIN_DS_PBFT_H
-#define MULTI_LEVEL_SECURE_BLOCKCHAIN_DS_PBFT_H
+#ifndef DS_PBFT_hpp
+#define DS_PBFT_hpp
 
 #include "ByzantineNetwork.hpp"
 #include "DS_PBFT_Peer.hpp"
@@ -21,8 +21,6 @@ struct txRequest{
 	int sequenceNumber;
 };
 
-//const static std::string MINING 		= "MINING";
-//const static std::string COLLECTING 	= "COLLECTING";
 class DS_PBFT {
 protected:
 
@@ -37,11 +35,11 @@ protected:
 	int                                                             _nextCommitteeId;
 	int                                                             _nextSquenceNumber;
 	double                                                          _faultTolerance;
-	ByzantineNetwork<PBFT_Message, DS_PBFT_Peer>                _peers;
+	ByzantineNetwork<PBFT_Message, DS_PBFT_Peer>                	_peers;
 	std::vector<int>                                                _groupIds;
 	std::vector<int>                                                _busyGroups;
 	std::vector<int>                                                _freeGroups;
-	std::vector<txRequest>                                 _requestQueue;
+	std::vector<txRequest>                                 			_requestQueue;
 	std::map<int,aGroup>                                            _groups;
 
 	// logging, metrics and untils
@@ -50,18 +48,19 @@ protected:
 	std::default_random_engine                                      _randomGenerator;
 	std::vector<int>                                                _currentCommittees;
 	bool                                                            _printNetwork;
+	int 															collectInterval = 0;
 
 	// util functions
-	txRequest                  generateRequest         ();
-	txRequest                  generateRequest         (int); // generate a request of a specific security level
-	void                                makeGroup               (std::vector<DS_PBFT_Peer*>,int);
-	double                              pickSecrityLevel        ();
-	void                                makeCommittee           (std::vector<int>);
-	void                                initCommittee           (std::vector<int>);
-	void                                updateBusyGroup         ();
+	txRequest                  			generateRequest         	();
+	txRequest                  			generateRequest         	(int); // generate a request of a specific security level
+	void                                initCommittee           	(std::vector<int>);
+	double                              pickSecrityLevel        	();
+
+//	void                                makeGroup               	(std::vector<DS_PBFT_Peer*>,int);
+//	void                                makeCommittee           	(std::vector<int>);
+//	void                                updateBusyGroup         	();
 
 
-	int collectInterval = 0;
 public:
 	DS_PBFT                                      ();
 	DS_PBFT                                      (const DS_PBFT&);
@@ -71,12 +70,6 @@ public:
 		}
 	};
 
-	std::vector<vector<DS_PBFT_Peer*>> consensusGroups;
-	std::vector<PBFT_Committee *> currentCommittees;
-	std::string status;
-	int delay;
-	int sequenceNumber = 0;
-	int byzantineOrNot = 1;
 	// setters
 	void                                setGroupSize            (int g)                                 {_groupSize = g;};
 	void                                setFaultTolerance       (double);
@@ -98,11 +91,11 @@ public:
 
 	aGroup                              getGroup                (int)const;
 	std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
-	std::vector<DS_PBFT_Peer>       getPeers                ()const;
+	std::vector<DS_PBFT_Peer>       	getPeers                ()const;
 	std::vector<int>                    getBusyGroups           ()const                                 {return _busyGroups;};
 	std::vector<int>                    getFreeGroups           ()const                                 {return _freeGroups;};
 	std::vector<int>                    getCurrentCommittees    ()const                                 {return _currentCommittees;};
-	std::vector<txRequest>     getRequestQueue         ()const                                 {return _requestQueue;}
+	std::vector<txRequest>     			getRequestQueue         ()const                                 {return _requestQueue;}
 	std::vector<aGroup>                 getCommittee            (int)const;
 
 	// mutators
@@ -130,8 +123,8 @@ public:
 	void                                setToOne                ()                                      {_peers.setToOne();};
 	void                                setToRandom             ()                                      {_peers.setToRandom();};
 	void                                shuffleByzantines       (int n);
-	std::vector<DS_PBFT_Peer*>      getByzantine            ()const                                 {return _peers.getByzantine();};
-	std::vector<DS_PBFT_Peer*>      getCorrect              ()const                                 {return _peers.getCorrect();};
+	std::vector<DS_PBFT_Peer*>      	getByzantine            ()const                                 {return _peers.getByzantine();};
+	std::vector<DS_PBFT_Peer*>      	getCorrect              ()const                                 {return _peers.getCorrect();};
 	void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
 	void                                makeCorrect             (int n)                                 {_peers.makeCorrect(n);};
 	void                                makePeerByzantines      (int i)                                 {_peers.makePeerByzantines(i);};
@@ -146,9 +139,9 @@ public:
 	std::vector<ledgerEntery>           getGlobalLedger         ()const;
 
 	// operators
-	DS_PBFT&             operator=               (const DS_PBFT&);
-	DS_PBFT_Peer*                   operator[]              (int i)                                 {return _peers[i];};
-	const DS_PBFT_Peer*             operator[]              (int i)const                            {return _peers[i];};
+	DS_PBFT&             				operator=               (const DS_PBFT&);
+	DS_PBFT_Peer*                   	operator[]              (int i)                                 {return _peers[i];};
+	const DS_PBFT_Peer*             	operator[]              (int i)const                            {return _peers[i];};
 	friend std::ostream&                operator<<              (std::ostream &out, // continued on next line
 																 const DS_PBFT&system)    {return system.printTo(out);};
 
@@ -156,16 +149,25 @@ public:
 	void								run						(int);
 	void								setDelay				(int d){delay = d;};
 
-	bool 								shufflePeers			= false;
+	std::vector<vector<DS_PBFT_Peer*>> 							consensusGroups{};
+	std::vector<PBFT_Committee *> 								currentCommittees{};
+	std::string 												status;
+	int 														delay = 0;
+	int 														sequenceNumber = 0;
+	int 														byzantineOrNot = 1;
+
+	bool 														shufflePeers = false;
 
 
-	std::map<int, int> securityLevelCount;
-	std::map<int, int> defeatedCommittee;
-	std::map<int, double> confirmationRate;
-	std::vector<int> consensusGroupCount;
+	std::map<int, int> 											securityLevelCount{};
+	std::map<int, int> 											defeatedCommittee{};
+	std::vector<int> 											consensusGroupCount{};
 
-	std::map<int,std::map<int, int>> averageWaitingTimeByIteration;
-	std::map<int,std::vector<PBFT_Message>> confirmedMessagesPerIteration;
+	std::map<int,std::map<int, int>> 							averageWaitingTimeByIteration{};
+	std::map<int,std::vector<PBFT_Message>> 					confirmedMessagesPerIteration{};
+
+	std::vector<int> 											defeatedCommittees{};
+	std::vector<int> 											totalCommittees{};
 
 };
 
@@ -291,16 +293,13 @@ txRequest DS_PBFT::generateRequest(){
 	txRequest request;
 
 	request.securityLevel = pickSecrityLevel();
-	std::cerr<<"PICKING SECURITY LEVEL"<<request.securityLevel<<std::endl;
 	request.submissionRound = _currentRound;
 	request.sequenceNumber = ++sequenceNumber;
-	std::cerr<<"PICKED"<<std::endl;
 
 	return request;
 }
 
 txRequest DS_PBFT::generateRequest(int securityLevel){
-	std::cerr<<"HOW THA FACK"<<std::endl;
 	assert(false);
 	txRequest request;
 	request.securityLevel = securityLevel;
@@ -350,9 +349,7 @@ void DS_PBFT::serveRequest(){
 void DS_PBFT::run(int iter){
 //	todo instead of in preformComputation, placed here
 	_currentRound++;
-	std::cerr<<"STATUS IN RUN IS "<<status<<std::endl;
 	if(status == MINING){
-			std::cerr<<"CURRENT COMMITTEES SIZE "<<currentCommittees.size()<<std::endl;
 			for(auto & currentCommittee : currentCommittees){
 				currentCommittee->receive();
 				currentCommittee->preformComputation();
@@ -382,12 +379,18 @@ void DS_PBFT::run(int iter){
 					numOfConfirmation++;
 					confirmedMessages.push_back(*currentCommittee->commitMsg);
 				}
+
+				//				defeated Committee and number of committee formed by security level
+				for(auto & currentCommittee : currentCommittees){
+					if(currentCommittee->defeated)
+						defeatedCommittees.push_back(currentCommittee->getSecurityLevel());
+					totalCommittees.push_back(currentCommittee->getSecurityLevel());
+				}
 				confirmedMessagesPerIteration[iter] = confirmedMessages;
 				averageWaitingTimeByIteration[iter][numOfConfirmation] = waitingTime;
 				for(auto & currentCommittee : currentCommittees){
 					currentCommittee->refreshPeers();
 				}
-				std::cerr<<"ALL COMMITTEES CONSENSUSED"<<std::endl;
 				//	send blocks
 				for(auto & currentCommittee : currentCommittees){
 					//	propogate the block to whole network except the committee itself.
@@ -431,7 +434,6 @@ void DS_PBFT::run(int iter){
 				status = COLLECTING;
 
 				collectInterval = 2 * delay;
-				std::cerr<<"SET COLLECTINTERVAL TO "<<collectInterval<<std::endl;
 			}
 
 	}else if(status == COLLECTING){
@@ -448,7 +450,6 @@ void DS_PBFT::run(int iter){
 
 			if(--collectInterval == 0){
 				Logger::instance()->log("CALLING UPDATE DAG\n");
-				std::cerr<<"CALLING UPDATE DAG"<<std::endl;
 				for(int index = 0; index< _peers.size();index++){
 					_peers[index]->updateDAG();
 				}
@@ -463,7 +464,6 @@ void DS_PBFT::run(int iter){
 		//	shuffling byzantines
 		if(byzantineOrNot==1){
 			Logger::instance()->log("Shuffling " + std::to_string(size()/10) + " Peers.\n");
-			std::cerr<<"Shuffling " + std::to_string(size()/10) + " Peers.\n"<<std::endl;
 			_peers.shuffleByzantines (size()/10);
 			//	n.shuffleByzantines (1);
 		}
@@ -477,7 +477,6 @@ void DS_PBFT::run(int iter){
 			int concurrentGroupCount = 0;
 			do{
 				int securityLevel = std::ceil(_requestQueue.front().securityLevel);
-				std::cerr<<"CHOSEN SECURITY LEVEL"<<securityLevel<<std::endl;
 //				int securityLevel = n.pickSecurityLevel(peersCount);
 				randIndex = rand()%_peers.size();
 
@@ -486,11 +485,9 @@ void DS_PBFT::run(int iter){
 				if(!consensusGroup.empty())
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
-						Logger::instance()->log("COMMITTEE FORMED\n");
-						std::cerr<<"OKOKOK"<<_requestQueue.front().submissionRound<<std::endl;
 						PBFT_Committee *co = new PBFT_Committee(consensusGroup, p, std::to_string(_requestQueue.front().submissionRound), securityLevel, _requestQueue.front().sequenceNumber, _nextCommitteeId++, _requestQueue.front().submissionRound);
-
-						std::cerr<<"COMMITTEE FORMED "<<co->getCommitteeId()<<std::endl;
+						Logger::instance()->log("COMMITTEE FORMED"+co->getCommitteeId()+"\n");
+						Logger::instance()->log("BYZANTINE RATION IS " + std::to_string(co->getByzantineRatio())+"\n");
 						concurrentGroupCount++;
 //						_requestQueue.pop_front();
 						_requestQueue.erase(_requestQueue.begin());
@@ -502,25 +499,20 @@ void DS_PBFT::run(int iter){
 						}
 					}
 			}while(!consensusGroup.empty() && !_requestQueue.empty()); //build committees until a busy peer is jumped on.
-			std::cerr<<"CONCURRENT COMMITTEE SIZE = "<<concurrentGroupCount<<std::endl;
+			Logger::instance()->log("CONCURRENT COMMITTEE SIZE = " + std::to_string(concurrentGroupCount) + "\n");
 			consensusGroupCount.push_back(concurrentGroupCount);
 		}
-
 
 		Logger::instance()->log("DONE WITH CONSENSUS GROUP FORMING.\n");
 
 //		status = MINING;
 //		Logger::instance()->log("COLLECTION COMPLETE IN ITERATION " + std::to_string(i) + ":\t START MINING \n");
-		std::cerr<<"CHECKING TO START INITIATION"<<std::endl;
 		if(!currentCommittees.empty()){
 			for(auto &committee: currentCommittees){
 				committee->initiate();
 			}
 			status = MINING;
 		}
-
-
-
 
 		/*for(int i = 0; i < groupsInCommittee.size(); i++){
 			aGroup group = getGroup(groupsInCommittee[i]);
@@ -533,12 +525,6 @@ void DS_PBFT::run(int iter){
 			}
 		}*/
 	}
-
-
-
-
-
-
 }
 /*void DS_PBFT::updateBusyGroup(){
 	std::vector<int> aliveCommittees = std::vector<int>(); // if a group is still bust we need the committee it belongs to

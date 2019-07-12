@@ -68,6 +68,7 @@ struct PBFT_Message{
     bool                defeated;
 
 	DAGBlock			dagBlock;
+	bool 				dagBlockMsg = false;
 
     PBFT_Message(){
         submission_round= 0;

@@ -6,8 +6,8 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
-#ifndef DS_PBFT_PEER_HPP
-#define DS_PBFT_PEER_HPP
+#ifndef DS_PBFT_Peer_hpp
+#define DS_PBFT_Peer_hpp
 
 #include <stdio.h>
 #include "PBFT_Peer.hpp"
@@ -185,6 +185,7 @@ void DS_PBFT_Peer::commitRequest(){
 			}
 		}
 		viewChange(_committeeMembers);
+		viewChanged = true;
 	}else if(!_currentRequest.byzantine && correctCommitMsg >= faultyPeers()){
 		commit.defeated = false;
 		_ledger.push_back(commit);
@@ -211,13 +212,10 @@ void DS_PBFT_Peer::commitRequest(){
 	//	newly added create a block once consensus is reached
 
 	if(!viewChanged){
-		std::cerr<<"VIEW NOT CHANGED"<<std::endl;
-
 		terminated = true;
 		createBlock();
 	}else{
-		std::cerr<<"VIEW CHANGED"<<std::endl;
-
+		Logger::instance()->log("VIEW CHANGED\n");
 	}
 }
 
@@ -306,35 +304,16 @@ std::ostream& DS_PBFT_Peer::printTo(std::ostream &out)const{
 	return out;
 }
 
-
-
-
-
-//new
-
-/*
-void DS_PBFT_Peer::receiveTx() {
-//	can receive from itself
-	assert(_inStream.size() == 1 || !consensusTx.empty());
-	if(consensusTx.empty()){
-		consensusTx = _inStream[0].getMessage().message[0];
-	}
-	else{
-		assert(!consensusTx.empty());
-	}
-	_inStream.clear();
-}
-*/
-
-
 void DS_PBFT_Peer::sendBlock(){
 	for(auto & _neighbor : _committeeMembers) {
+		assert(_neighbor.second->id()!= id());
 		PBFT_Message messageToSend;
 		Peer<PBFT_Message> *peer = _neighbor.second;
 		Packet<PBFT_Message> newMessage("", peer->id(), _id);
 		messageToSend.client_id = id();
 //todo add block to the message;
 		messageToSend.dagBlock = *minedBlock;
+		messageToSend.dagBlockMsg = true;
 		messageToSend.creator_id = id();
 		newMessage.setBody(messageToSend);
 		_outStream.push_back(newMessage);
@@ -352,26 +331,27 @@ void DS_PBFT_Peer::updateDAG() {
 	}
 	//resolve the dag
 	for(auto & i : _inStream){
-		Logger::instance()->log("BLOCK FROM " + i.getMessage().client_id + " TO " + id() + "\n");
-		std::cerr<<"BLOCK FROM " + i.getMessage().client_id + " TO " + id() + "\n"<<std::endl;
-		//todo what will happen if a mined block is received before or at the same time a transaction is received.
-		/*if(i.getMessage().txFlag){
-			//check to see if the transaction has already been added to the dag
-			if(dag.transactionInDag(i.getMessage().message[0]))
+//		this flag added to distinguish block msg from other messages.
+		if(i.getMessage().dagBlockMsg){
+			Logger::instance()->log("BLOCK FROM " + i.getMessage().client_id + " TO " + id() + "\n");
+			//todo what will happen if a mined block is received before or at the same time a transaction is received.
+			/*if(i.getMessage().txFlag){
+				//check to see if the transaction has already been added to the dag
+				if(dag.transactionInDag(i.getMessage().message[0]))
+					continue;
+				else{
+					consensusQueue.push_back(i.getMessage().message[0]);
+					assert(false);
+				}
 				continue;
-			else{
-				consensusQueue.push_back(i.getMessage().message[0]);
-				assert(false);
 			}
-			continue;
-		}
-		assert(!i.getMessage().txFlag);
-		if(i.getMessage().dagBlockFlag){
-			dagBlocks.push_back(i.getMessage().dagBlock);
-		}*/
+			assert(!i.getMessage().txFlag);
+			if(i.getMessage().dagBlockFlag){
+				dagBlocks.push_back(i.getMessage().dagBlock);
+			}*/
 //todo no txFLag dagBlockFlag only message
-//		dagBlocks.push_back()
-		dagBlocks.push_back(i.getMessage().dagBlock);
+			dagBlocks.push_back(i.getMessage().dagBlock);
+		}
 	}
 
 	if(!dagBlocks.empty()){
@@ -379,13 +359,10 @@ void DS_PBFT_Peer::updateDAG() {
 		{
 			return lhs.getData() < rhs.getData();
 		});
-		std::cerr<<"SERIOUSLY?"<<std::endl;
-		std::cerr<<dagBlocks.size()<<std::endl;
 
 		for(auto & dagBlock : dagBlocks){
 			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByzantine());
 		}
-		std::cerr<<"SERIOUSLY ENDED?"<<std::endl;
 	}
 	dag.setTips();
 	dagBlocks.clear();
@@ -404,8 +381,6 @@ void DS_PBFT_Peer::createBlock(){
 //	string newBlockHash = std::to_string(dag.getSize());
 
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, std::to_string(seqNumber), _byzantine));
-	std::cerr<<minedBlock->getHash()<<std::endl;
-	std::cerr<<"block created by "<<id()<<std::endl;
 }
 
 

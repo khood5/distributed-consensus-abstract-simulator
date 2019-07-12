@@ -20,8 +20,6 @@ private:
 	int 									firstMinerIndex = 0;
 
 
-
-
 //	new
 	int sequenceNumber;
 
@@ -34,14 +32,13 @@ public:
 	int 									getFirstMinerIndex				(){return firstMinerIndex;}
 
 	void 									preformComputation				() override;
-	int 									incrementPBFTsystemState		();
-	void 									nextState						(int, int);
-	void 									leaderChange					();
 	void									refreshPeers					();
 	void									initiate						();
+	int										getSecurityLevel				(){return securityLevel;}
+	bool 									defeated = false;
 
 //	todo conflicts with string committeeId
-	int 									committeeId;
+	int 									committeeId = -1;
 	PBFT_Message*							commitMsg = nullptr;
 	int submissionRound = -1;
 
@@ -65,6 +62,10 @@ PBFT_Committee::PBFT_Committee(const PBFT_Committee &rhs) : Committee<DS_PBFT_Pe
 	firstMinerIndex = rhs.firstMinerIndex;
 
 	sequenceNumber = rhs.sequenceNumber;
+	defeated = rhs.defeated;
+	committeeId = rhs.committeeId;
+	submissionRound = rhs.submissionRound;
+	commitMsg = new PBFT_Message(*rhs.commitMsg);
 }
 
 PBFT_Committee& PBFT_Committee::operator=(const PBFT_Committee &rhs) {
@@ -79,6 +80,10 @@ PBFT_Committee& PBFT_Committee::operator=(const PBFT_Committee &rhs) {
 	firstMinerIndex = rhs.firstMinerIndex;
 
 	sequenceNumber = rhs.sequenceNumber;
+	defeated = rhs.defeated;
+	committeeId = rhs.committeeId;
+	submissionRound = rhs.submissionRound;
+	commitMsg = new PBFT_Message(*rhs.commitMsg);
 	return *this;
 }
 
@@ -89,20 +94,6 @@ void PBFT_Committee::preformComputation(){
 
 	bool consensus = true;
 	for(int peerId = 0; peerId<size(); peerId++ ) {
-		/*if (!committeePeers[peerId]->getTerminationFlag()) {
-			//the leader does not need to terminate
-			if (committeePeers[peerId]->id() == getLeaderId()) {
-				continue;
-			}
-			std::cerr<<"NO CONSENSUS IN PEER "<<committeePeers[peerId]->id()<<std::endl;
-			std::cerr<<"BYZANTINE "<<committeePeers[peerId]->isByzantine()<<std::endl;
-//			consensus reached if all non byzantine peers reach consensus
-			if(committeePeers[peerId]->isByzantine()){
-//				continue;
-			}
-			consensus = false;
-			break;
-		}*/
 		if(committeePeers[peerId]->getCommittee()!=-1){
 			consensus = false;
 			break;
@@ -112,16 +103,13 @@ void PBFT_Committee::preformComputation(){
 	consensusFlag = consensus;
 	if(consensusFlag){
 		commitMsg = new PBFT_Message(committeePeers[0]->getLedger().back());
-		std::cerr<<"CONSENSUSSED"<<std::endl;
-	}else{
-
+		defeated = commitMsg->defeated;
 	}
 }
 
 void PBFT_Committee::initiate(){
 //	committee initiation done here
 	// clear old committee
-	std::cerr<<"INITIATING COMMITTEE"<<std::endl;
 	for(int i = 0 ; i< committeePeers.size(); i++){
 		committeePeers[i]->clearCommittee();
 	}
@@ -132,12 +120,9 @@ void PBFT_Committee::initiate(){
 
 		for(int j = 0; j< committeePeers.size(); j++){
 			if(i != j){
-//				neighbours[committeePeers[j]->id()] = committeePeers[j];
 				committeePeers[i]->addCommitteeMember(*committeePeers[j]);
 			}
 		}
-
-//		dynamic_cast<DS_PBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
 	}
 
 	for(auto &committeePeer: committeePeers){
@@ -154,8 +139,8 @@ void PBFT_Committee::initiate(){
 }
 
 void PBFT_Committee::refreshPeers() {
-	for (int i = 0; i < committeePeers.size(); i++) {
-		committeePeers[i]->setBusy(false);
+	for (auto & committeePeer : committeePeers) {
+		committeePeer->setBusy(false);
 	}
 }
 
