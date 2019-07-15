@@ -398,19 +398,17 @@ void DS_bitcoin(const char ** argv){
 	std::map<int, int> securityLevelCount;
 	std::map<int,int> defeatedCommittee;
 
-	std::map<int, double> confirmationRate;
+	std::map<int, double> confirmationPerIteration;
 	//	initial block size is peersCount + 1
 	int prevConfirmationSize = peersCount + 1;
 
 	for(int i = 0; i<iterationCount; i++){
 
-		if(i % 100 == 0){
-			//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
-			//	number of transactions introduced will be 100/txRate
-			confirmationRate[i] = ((double)(n[0]->dag.getSize() - prevConfirmationSize))/(100/(double)txRate);
-			prevConfirmationSize = n[0]->dag.getSize();
+		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
+		//	number of transactions introduced will be 100/txRate
+		confirmationPerIteration[i] = ((double)(n[0]->dag.getSize() - prevConfirmationSize));
+		prevConfirmationSize = n[0]->dag.getSize();
 
-		}
 
 		Logger::instance()->log("----------------------------------------------------------Iteration " + std::to_string(i) + "\n");
 
@@ -641,26 +639,53 @@ void DS_bitcoin(const char ** argv){
 			Logger::instance()->log(std::to_string(l) + " 0\n");
 	}
 
-	Logger::instance()->log("CONFIRMATION RATE\n");
-	for(auto cr : confirmationRate){
+	Logger::instance()->log("CONFIRMATION RATE, ROLLING TIMELINE\n");
+	for(auto cr : confirmationPerIteration){
 		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
 	}
 
-	Logger::instance()->log("AVERAGE WAITING TIME\n");
+	int rangeStart = 0;
+	std::vector<double> rollingAvgThroughputTimeline;
 
-	double avgWaitTime = 0;
-	double confirmedCount = 0;
-	for(auto tx : n.transactions){
-		if(-1 != tx->getConfirmedAt()){
-			avgWaitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
-			confirmedCount++;
+	for(rangeStart = 0; (rangeStart + 100)<=iterationCount; rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		double confirmations = 0;
+		for(int i = rangeStart; i< rangeEnd; i++){
+			confirmations+= confirmationPerIteration[i];
 		}
+		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
 	}
-	Logger::instance()->log(std::to_string(avgWaitTime/confirmedCount) + "\n");
 
-	for(auto committee : currentCommittees){
-		delete committee;
+	for(auto timeline: rollingAvgThroughputTimeline){
+		Logger::instance()->log("ROLLING TIMELINE THROUGHPUT  " + std::to_string(timeline)+"\n");
 	}
+
+	Logger::instance()->log("ROLLING AVERAGE WAITING TIME\n");
+
+	//	rolling average waiting time
+	std::vector<double> rollingAvgWaitTime;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		int confirmed = 0;
+		double waitTime = 0;
+
+
+		for(auto tx: n.transactions){
+			if(-1 != tx->getConfirmedAt()){
+				if(rangeStart<tx->getConfirmedAt() && tx->getConfirmedAt()<=rangeEnd){
+					confirmed++;
+					waitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
+				}
+			}
+		}
+
+		rollingAvgWaitTime.push_back(waitTime/confirmed);
+	}
+
+	for(auto waitTime: rollingAvgWaitTime){
+		Logger::instance()->log("ROLLING WAITING TIME " + std::to_string(waitTime)+"\n");
+	}
+
 }
 
 void syncBFT(const char ** argv){
