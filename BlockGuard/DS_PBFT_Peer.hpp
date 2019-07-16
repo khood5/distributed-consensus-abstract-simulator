@@ -383,5 +383,10 @@ void DS_PBFT_Peer::createBlock(){
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, std::to_string(seqNumber), _byzantine));
 }
 
+void DS_PBFT_Peer::receiveTx() {
+//	can receive from itself
+//	nothing here, transactions are mathematical calculations, just keep delaying until twice max delay.
+	_inStream.clear();
+}
 
 #endif /* PBFTPeer_Sharded_hpp */

@@ -49,6 +49,7 @@ protected:
 	std::vector<int>                                                _currentCommittees;
 	bool                                                            _printNetwork;
 	int 															collectInterval = 0;
+	int 															txWaitTime = 2 * _peers.maxDelay();
 
 	// util functions
 	txRequest                  			generateRequest         	();
@@ -349,7 +350,24 @@ void DS_PBFT::serveRequest(){
 void DS_PBFT::run(int iter){
 //	todo instead of in preformComputation, placed here
 	_currentRound++;
-	if(status == MINING){
+	if(status == WAITING_FOR_TX){
+		//	wait for max delay until all committees receive their transactions
+		if(txWaitTime>=0 ){
+			for(auto & currentCommittee : currentCommittees) {
+				currentCommittee->receive();
+			}
+			txWaitTime--;
+		}
+
+		if(txWaitTime == 0){
+			for(auto & currentCommittee : currentCommittees) {
+				currentCommittee->receiveTx();
+			}
+			status = MINING;
+			txWaitTime = 2*_peers.maxDelay();
+		}
+
+	}else if(status == MINING){
 			for(auto & currentCommittee : currentCommittees){
 				currentCommittee->receive();
 				currentCommittee->preformComputation();
@@ -505,13 +523,13 @@ void DS_PBFT::run(int iter){
 
 		Logger::instance()->log("DONE WITH CONSENSUS GROUP FORMING.\n");
 
-//		status = MINING;
 //		Logger::instance()->log("COLLECTION COMPLETE IN ITERATION " + std::to_string(i) + ":\t START MINING \n");
 		if(!currentCommittees.empty()){
 			for(auto &committee: currentCommittees){
 				committee->initiate();
 			}
-			status = MINING;
+//			status = MINING;
+			status = WAITING_FOR_TX;
 		}
 
 		/*for(int i = 0; i < groupsInCommittee.size(); i++){

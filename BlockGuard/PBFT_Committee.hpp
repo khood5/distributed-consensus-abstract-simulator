@@ -36,6 +36,7 @@ public:
 	void									initiate						();
 	int										getSecurityLevel				(){return securityLevel;}
 	bool 									defeated = false;
+	void 									receiveTx						();
 
 //	todo conflicts with string committeeId
 	int 									committeeId = -1;
@@ -144,5 +145,10 @@ void PBFT_Committee::refreshPeers() {
 	}
 }
 
+void PBFT_Committee::receiveTx(){
+	for(auto & committeePeer : committeePeers){
+		committeePeer->receiveTx();
+	}
+}
 
 #endif //PBFT_Committee_hpp
