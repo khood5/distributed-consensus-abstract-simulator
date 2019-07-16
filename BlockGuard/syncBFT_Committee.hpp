@@ -17,6 +17,7 @@ private:
 	bool									changeLeader = true;
 	std::vector<std::string> 				leaderIdCandidates;
 	int 									firstMinerIndex = -1;
+	bool									defeated = false;
 
 public:
 	syncBFT_Committee														(std::vector<syncBFT_Peer *> , syncBFT_Peer *, std::string , int);
@@ -33,6 +34,7 @@ public:
 	void 									leaderChange					();
 	void									refreshPeers					();
 	void									initiate						();
+	bool 									getDefeated						(){return defeated;}
 
 };
 
@@ -160,8 +162,11 @@ void syncBFT_Committee::performComputation(){
 
 void syncBFT_Committee::initiate(){
 	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
-
+	int byzantineCount = 0;
 	for(int i = 0 ; i< committeePeers.size(); i++){
+		if(committeePeers[i]->isByzantine()){
+			byzantineCount++;
+		}
 		std::map<std::string, Peer<syncBFTmessage>* > neighbours;	//previous group is dissolved when new group is selected
 		for(int j = 0; j< committeePeers.size(); j++){
 			if(i != j){
@@ -169,6 +174,9 @@ void syncBFT_Committee::initiate(){
 			}
 		}
 		dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
+	}
+	if(byzantineCount>= (size() - 1)/2 +1){
+		defeated = true;
 	}
 }
 
