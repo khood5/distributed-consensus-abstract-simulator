@@ -39,7 +39,7 @@ struct syncBFTmessage {
 	DAGBlock                                		dagBlock;
 	bool                                    		txFlag = false;
 	bool                                    		dagBlockFlag =false;
-
+	bool											faulty = false;
 	syncBFTmessage() = default;
 
 	syncBFTmessage(const syncBFTmessage& rhs){
@@ -54,6 +54,7 @@ struct syncBFTmessage {
 		dagBlock = rhs.dagBlock;
 		txFlag = rhs.txFlag;
 		dagBlockFlag = rhs.dagBlockFlag;
+		faulty = rhs.faulty;
 	}
 
 	syncBFTmessage& operator=(const syncBFTmessage& rhs){
@@ -70,6 +71,7 @@ struct syncBFTmessage {
 		dagBlock = rhs.dagBlock;
 		txFlag = rhs.txFlag;
 		dagBlockFlag = rhs.dagBlockFlag;
+		faulty = rhs.faulty;
 		return *this;
 	}
 
@@ -125,6 +127,7 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
 	bool 											terminated = true;
 	int 											committeeSize = 0;
 	std::string                           			consensusTx = "";
+	bool											faultyBlock = false;
 
 public:
 	int 											iter;

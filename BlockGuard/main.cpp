@@ -444,6 +444,11 @@ void syncBFT(const char ** argv){
 				//	send blocks
 				Logger::instance()->log("CONSENSUS REACHEDDDD \n");
 				for(auto & currentCommittee : currentCommittees){
+					//  defeated committees count
+					if(currentCommittee->getDefeated()){
+						defeatedCommittee[currentCommittee->getSecurityLevel()]++;
+					}
+
 					//	propogate the block to whole network except the committee itself.
 					std::vector<std::string> peerIds = currentCommittee->getCommitteePeerIds();
 					std::map<std::string, Peer<syncBFTmessage>* > neighbours;
@@ -501,7 +506,10 @@ void syncBFT(const char ** argv){
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
 				Logger::instance()->log("Shuffling "+std::to_string(peersCount/10)+" Peers.\n");
-				n.shuffleByzantines (peersCount/10);
+				int shuffleCount = peersCount/10;
+				if (byzantinePeers.size()<peersCount/10)
+					shuffleCount = byzantinePeers.size();
+				n.shuffleByzantines (shuffleCount);
 			}
 
 			if(!txQueue.empty()){
@@ -520,20 +528,11 @@ void syncBFT(const char ** argv){
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
 						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueue.front(), securityLevel);
-						if(co->getByzantineRatio()>= 0.5){
-							co->refreshPeers();
-							defeatedCommittee[securityLevel]++;
-							txQueue.pop_front();
-							delete co;
-
-						}else{
-							concurrentGroupCount++;
-							txQueue.pop_front();
-							currentCommittees.push_back(co);
-							consensusGroups.push_back(consensusGroup);
-							securityLevelCount[securityLevel]++;
-						}
-
+						concurrentGroupCount++;
+						txQueue.pop_front();
+						currentCommittees.push_back(co);
+						consensusGroups.push_back(consensusGroup);
+						securityLevelCount[securityLevel]++;
 					}
 				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
 
