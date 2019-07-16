@@ -34,6 +34,7 @@ public:
 	bool 									getConsensusFlag				(){return consensusFlag;};
 	double									getByzantineRatio				(){return byzantineRatio;};
 	std::string								getCommitteeId					(){return cId;}
+	int										getSecurityLevel				(){return securityLevel;}
 
 	virtual void							performComputation				() = 0;
 	void									receive							();
