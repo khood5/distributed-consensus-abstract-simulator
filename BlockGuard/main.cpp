@@ -23,6 +23,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include "Transaction.hpp"
 
 
 const int peerCount = 10;
@@ -344,6 +345,7 @@ void syncBFT(const char ** argv){
 
 	std::vector<syncBFT_Committee *> currentCommittees;
 	std::deque<std::string> txQueue;
+	std::deque<Transaction *> txQueueT;
 
 //	for printing security levels
 	std::vector<int> securityLevels;
@@ -377,21 +379,26 @@ void syncBFT(const char ** argv){
 	std::map<int, int> securityLevelCount;
 	std::map<int, int> defeatedCommittee;
 	std::map<int, double> confirmationRate;
+	std::map<int, double> confirmationPerIteration;
+
 
 	//	initial block size is peersCount + 1
 	int prevConfirmationSize = peersCount + 1;
 	int waitTime = 2 * n.maxDelay();
 
 	for(int i = 0; i<iterationCount; i++){
-		if(i % 100 == 0){
-			//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
-			//	number of transactions introduced will be 100/txRate
-			confirmationRate[i] = ((double)(n[0]->getDAG().getSize() - prevConfirmationSize))/(100);
-			prevConfirmationSize = n[0]->getDAG().getSize();
-		}
+
+		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
+		//	number of transactions introduced will be 100/txRate
+		confirmationPerIteration[i] = ((double)(n[0]->getDAG().getSize() - prevConfirmationSize));
+		prevConfirmationSize = n[0]->getDAG().getSize();
+
 
 		if( i%txRate == 0  ){
 			txQueue.push_back("Tx_"+std::to_string(i));
+			Transaction *a = new Transaction("Tx_"+std::to_string(i), i);
+			txQueueT.push_back(a);
+			n.transactions.push_back(a);
 		}
 		Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
 		if(status == WAITING_FOR_TX){
@@ -433,7 +440,12 @@ void syncBFT(const char ** argv){
 			while(it != currentCommittees.end()) {
 				if(!(*it)->getConsensusFlag()) {
 					consensus = false;
-					break;
+//					break;
+				} else{
+					if((*it)->getTx()->getConfirmedAt() == -1){
+						//	confirmed at time not set yet. set it
+						(*it)->getTx()->setConfirmedAt(i);
+					}
 				}
 				++it;
 			}
@@ -512,7 +524,7 @@ void syncBFT(const char ** argv){
 				n.shuffleByzantines (shuffleCount);
 			}
 
-			if(!txQueue.empty()){
+			if(!txQueueT.empty()){
 				//	select a random peer
 				int randIndex;
 				syncBFT_Peer *p;
@@ -527,14 +539,14 @@ void syncBFT(const char ** argv){
 
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
-						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueue.front(), securityLevel);
+						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueueT.front(), securityLevel);
 						concurrentGroupCount++;
-						txQueue.pop_front();
+						txQueueT.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
 						securityLevelCount[securityLevel]++;
 					}
-				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
+				}while(!consensusGroup.empty() && !txQueueT.empty()); //build committees until a busy peer is jumped on.
 
 				consensusGroupCount.push_back(concurrentGroupCount);
 			}
@@ -555,9 +567,12 @@ void syncBFT(const char ** argv){
 
 	}
 
+	Logger::instance()->log("FINALLY\n");
 	for(int i =0; i<n.size();i++){
-		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(n[i]->getDAG().getSize())+"\n");
+		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(n[i]->getDAG().getSize()) + "\n");
 	}
+
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(n[0]->getDAG().getSize() - peersCount - 1)+"\n");
 
 	Logger::instance()->log("DEFEATED COMMITTEES COUNT\n");
 	for(auto l : securityLevels){
@@ -567,15 +582,70 @@ void syncBFT(const char ** argv){
 			Logger::instance()->log(std::to_string(l) + " 0 \n");
 	}
 
-	Logger::instance()->log("CONFIRMATION RATE\n");
-	for(auto cr : confirmationRate){
+	Logger::instance()->log("TOTAL COMMITTEES COUNT \n");
+
+	for(auto l : securityLevels){
+		if(securityLevelCount.count(l)){
+			Logger::instance()->log(std::to_string(l) + "\t" + std::to_string(securityLevelCount[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("RATIO OF DEFEATED COMMITTEES\n");
+	for(auto l : securityLevels){
+		if(defeatedCommittee.count(l)){
+			Logger::instance()->log(std::to_string(l) +  " " + std::to_string((double)defeatedCommittee[l]/securityLevelCount[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("CONFIRMATION RATE, ROLLING TIMELINE\n");
+	for(auto cr : confirmationPerIteration){
 		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
 	}
 
-	for(auto committee : currentCommittees){
-		delete committee;
+	int rangeStart = 0;
+	std::vector<double> rollingAvgThroughputTimeline;
+
+	for(rangeStart = 0; (rangeStart + 100)<=iterationCount; rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		double confirmations = 0;
+		for(int i = rangeStart; i< rangeEnd; i++){
+			confirmations+= confirmationPerIteration[i];
+		}
+		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
 	}
 
+	for(auto timeline: rollingAvgThroughputTimeline){
+		Logger::instance()->log("ROLLING TIMELINE THROUGHPUT  " + std::to_string(timeline)+"\n");
+	}
+
+	Logger::instance()->log("ROLLING AVERAGE WAITING TIME\n");
+
+	//	rolling average waiting time
+	std::vector<double> rollingAvgWaitTime;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		int confirmed = 0;
+		double waitTime = 0;
+
+		for(auto tx: n.transactions){
+			std::cerr<<tx->getIntroducedAt()<<std::endl;
+			std::cerr<<tx->getConfirmedAt()<<std::endl;
+			if(-1 != tx->getConfirmedAt()){
+				if(rangeStart<tx->getConfirmedAt() && tx->getConfirmedAt()<=rangeEnd){
+					confirmed++;
+					waitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
+				}
+			}
+		}
+
+		rollingAvgWaitTime.push_back(waitTime/confirmed);
+	}
+
+	for(auto waitTime: rollingAvgWaitTime){
+		Logger::instance()->log("ROLLING WAITING TIME " + std::to_string(waitTime)+"\n");
+	}
 }
 
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){

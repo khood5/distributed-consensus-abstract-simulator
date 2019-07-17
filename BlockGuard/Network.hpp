@@ -21,6 +21,7 @@
 #include <memory>
 #include "Peer.hpp"
 #include "DAG.hpp"
+#include "Transaction.hpp"
 
 static const std::string                POISSON = "POISSON";
 static const std::string                RANDOM  = "RANDOM";
@@ -46,6 +47,7 @@ protected:
 	peer_type*							getPeerById			(std::string);
 
 public:
+	std::vector<Transaction *>			transactions;
     Network                                                 ();
     Network                                                 (const Network<type_msg,peer_type>&);
     ~Network                                                ();
@@ -120,6 +122,7 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _minDelay = rhs._minDelay;
     _distribution = rhs._distribution;
     _log = rhs._log;
+	transactions = rhs.transactions;
 }
 
 template<class type_msg, class peer_type>
@@ -127,6 +130,9 @@ Network<type_msg,peer_type>::~Network(){
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
     }
+	for(int i = 0; i< transactions.size(); i++){
+		delete transactions[i];
+	}
 }
 
 template<class type_msg, class peer_type>

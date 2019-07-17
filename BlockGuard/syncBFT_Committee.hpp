@@ -20,7 +20,7 @@ private:
 	bool									defeated = false;
 
 public:
-	syncBFT_Committee														(std::vector<syncBFT_Peer *> , syncBFT_Peer *, std::string , int);
+	syncBFT_Committee														(std::vector<syncBFT_Peer *> , syncBFT_Peer *, Transaction*, int);
 	syncBFT_Committee														(const syncBFT_Committee&);
 	syncBFT_Committee&						operator=						(const syncBFT_Committee &rhs);
 
@@ -38,7 +38,7 @@ public:
 
 };
 
-syncBFT_Committee::syncBFT_Committee(std::vector<syncBFT_Peer *> peers, syncBFT_Peer *sender, std::string transaction, int sLevel) : Committee<syncBFT_Peer>(peers, sender, transaction, sLevel){
+syncBFT_Committee::syncBFT_Committee(std::vector<syncBFT_Peer *> peers, syncBFT_Peer *sender, Transaction* transaction, int sLevel) : Committee<syncBFT_Peer>(peers, sender, transaction, sLevel){
 	for(auto & committeePeer : committeePeers){
 		committeePeer->setTerminated(false);
 		committeePeer->setCommitteeSize(committeePeers.size());
@@ -161,7 +161,7 @@ void syncBFT_Committee::performComputation(){
 }
 
 void syncBFT_Committee::initiate(){
-	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
+	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
 	int byzantineCount = 0;
 	for(int i = 0 ; i< committeePeers.size(); i++){
 		if(committeePeers[i]->isByzantine()){

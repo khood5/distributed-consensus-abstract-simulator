@@ -17,13 +17,13 @@ protected:
 	std::vector<peer_type *>				committeePeers;
 	peer_type *								senderPeer;
 	int 									securityLevel = 0;
-	std::string								tx;
+	Transaction	*							tx;
 	std::string								cId;
 	bool 									consensusFlag = false;
 	double 									byzantineRatio = 0;
 
 public:
-	Committee								(std::vector<peer_type *> , peer_type *, const std::string& , int);
+	Committee								(std::vector<peer_type *> , peer_type *, Transaction*, int);
 	Committee								(const Committee&);
 	~Committee								() = default;
 	Committee&								operator=						(const Committee&);
@@ -39,11 +39,12 @@ public:
 	virtual void							performComputation				() = 0;
 	void									receive							();
 	void									transmit						();
+	Transaction*							getTx							(){return tx;}
 
 };
 
 template <class peer_type>
-Committee<peer_type>::Committee(std::vector<peer_type*> peers, peer_type *sender, const std::string& transaction, int sLevel){
+Committee<peer_type>::Committee(std::vector<peer_type*> peers, peer_type *sender, Transaction* transaction, int sLevel){
 	committeePeers = peers;
 	tx = transaction;
 	senderPeer = sender;
