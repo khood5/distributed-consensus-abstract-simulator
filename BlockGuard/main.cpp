@@ -516,8 +516,10 @@ void DS_bitcoin(const char ** argv){
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
 				Logger::instance()->log("Shuffling " + std::to_string(peersCount/10) + " Peers.\n");
-				n.shuffleByzantines (peersCount/10);
-				//	n.shuffleByzantines (1);
+				int shuffleCount = peersCount/10;
+				if (byzantinePeers.size()<peersCount/10)
+					shuffleCount = byzantinePeers.size();
+				n.shuffleByzantines (shuffleCount);
 			}
 
 			if(!txQueueT.empty()){
