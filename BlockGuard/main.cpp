@@ -388,7 +388,7 @@ void syncBFT(const char ** argv){
 	int waitTime = 2 * n.maxDelay();
 
 	for(int i = 0; i<iterationCount; i++){
-
+		std::cerr<<"Iteration "<<i<<std::endl;
 		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
 		//	number of transactions introduced will be 100/txRate
 		confirmationPerIteration[i] = ((double)(n[0]->getDAG().getSize() - prevConfirmationSize));
