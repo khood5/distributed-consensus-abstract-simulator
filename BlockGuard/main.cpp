@@ -775,6 +775,7 @@ void run_DS_PBFT(const char ** argv){
 	instance.status = COLLECTING;
 	int numberOfRequests = 0;
 	for(int i =0; i < iterationCount; i++){
+		std::cerr<<"Iteration "<<i<<std::endl;
 		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
 		//	number of transactions introduced will be 1/txRate
 //		confirmation rate, rolling average
