@@ -344,7 +344,7 @@ void Network<type_msg,peer_type>::buildInitialDAG() {
 
 template<class type_msg, class peer_type>
 std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Peer<type_msg> * peer, int securityLevel) {
-	std::cerr<<"SECURTIY LEVEL CHOSEN = "<<securityLevel<<std::endl;
+//	std::cerr<<"SECURTIY LEVEL CHOSEN = "<<securityLevel<<std::endl;
 	int numOfPeers = (securityLevel);
 	std::vector<peer_type*> peersForConsensus;
 	if(numOfPeers == size()){
@@ -389,34 +389,34 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 		}while (uniquePeerCount < size()/2);
 
 		uniquePeersIndex--;
-		std::cerr<<"THE INDEX WHERE "<<size()/2<<" UNIQUE PEERS WERE FOUND IS "<<uniquePeersIndex<<std::endl;
+//		std::cerr<<"THE INDEX WHERE "<<size()/2<<" UNIQUE PEERS WERE FOUND IS "<<uniquePeersIndex<<std::endl;
 		sortedDAG.resize(uniquePeersIndex+1);
-		std::cerr<<"AFTER SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
+//		std::cerr<<"AFTER SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
 		std::vector<string> chosen;
 
 		while (peersForConsensus.size() < numOfPeers) {
 			if(chosen.size() + sortedDAG.size() < numOfPeers){
-				std::cerr<<"Not enough peers to form a committee"<<std::endl;
+//				std::cerr<<"Not enough peers to form a committee"<<std::endl;
 				return {};
 			}
 			int randIndex = rand() % sortedDAG.size();
 			std::string peerId = sortedDAG[randIndex];
 			//random value
 			if(std::find(chosen.begin(), chosen.end(), peerId) !=  chosen.end()) {
-				std::cerr<<"The jumped on peer is already chosen."<<std::endl;
+//				std::cerr<<"The jumped on peer is already chosen."<<std::endl;
 				sortedDAG.erase(sortedDAG.begin()+randIndex);
 				continue;
 			} else {
 				peer_type* iPeer = getPeerById(peerId);
 				if(!iPeer->isBusy()){
-					std::cerr<<iPeer->id()<<" IS NOT BUSY"<<std::endl;
+//					std::cerr<<iPeer->id()<<" IS NOT BUSY"<<std::endl;
 					peersForConsensus.push_back(iPeer);
 					chosen.push_back(peerId);
 					sortedDAG.erase(sortedDAG.begin()+randIndex);
 
 				}else{
 //					no busy, if already selected remove and try another
-					std::cerr<<"The jumped on peer "<<iPeer->id()<<" is already taken for another committee "<<std::endl;
+//					std::cerr<<"The jumped on peer "<<iPeer->id()<<" is already taken for another committee "<<std::endl;
 					sortedDAG.erase(sortedDAG.begin()+randIndex);
 					continue;
 				}
@@ -437,7 +437,7 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 		peerBusy->setBusy(true);
 	}
 
-	std::cerr<<"FINALISED SECURITY LEVEL CHOSEN = "<<securityLevel<<std::endl;
+//	std::cerr<<"FINALISED SECURITY LEVEL CHOSEN = "<<securityLevel<<std::endl;
 	return peersForConsensus;
 }
 

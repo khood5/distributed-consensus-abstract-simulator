@@ -93,11 +93,11 @@ public:
 		//iterate over the blocks in each vertex and check if the transaction is present or not
 		for (auto vd : boost::make_iterator_range(vertices(g))) {
 			if(g[vd].dagBlock.getData() == tx){
-				std::cerr<<"BLOCK FOUND BEFORE TRANSACTION"<<g[vd].dagBlock.getData()<<std::endl;
+//				std::cerr<<"BLOCK FOUND BEFORE TRANSACTION"<<g[vd].dagBlock.getData()<<std::endl;
 				return true;
 			}
 		}
-		std::cerr<<"BLOCK NOT FOUND BEFORE TRANSACTION"<<std::endl;
+//		std::cerr<<"BLOCK NOT FOUND BEFORE TRANSACTION"<<std::endl;
 		return false;
 
 	}
