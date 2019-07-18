@@ -244,7 +244,7 @@ public:
 
 		// Print topological order
 //		std::cerr<<"THE ordering is "<<std::endl;
-		for (const auto & i : top_order){ std::cerr<< i << " "; }
+//		for (const auto & i : top_order){ std::cerr<< i << " "; }
 
 		return top_order;
 
