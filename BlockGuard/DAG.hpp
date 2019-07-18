@@ -68,11 +68,11 @@ public:
 			const auto iter = findVertex(g, v.id);
 			const auto theEnd = boost::vertices(g).second;
 			if (iter != theEnd) {
-				std::cerr<<"VERTEX FOUND ALREADY"<<std::endl;
+//				std::cerr<<"VERTEX FOUND ALREADY"<<std::endl;
 				//don't add
 				return;
 			} else {
-				std::cerr << "VERTEX NOT FOUND, ADDING IT\n";
+//				std::cerr << "VERTEX NOT FOUND, ADDING IT\n";
 			}
 		}
 
@@ -84,7 +84,7 @@ public:
 				boost::add_edge(a, *iter, Edge{id}, g);
 
 			} else {
-				std::cerr << "FAILED TO FIND THE PREVIOUS HASH\n";
+//				std::cerr << "FAILED TO FIND THE PREVIOUS HASH\n";
 			}
 		}
 	}
@@ -93,11 +93,11 @@ public:
 		//iterate over the blocks in each vertex and check if the transaction is present or not
 		for (auto vd : boost::make_iterator_range(vertices(g))) {
 			if(g[vd].dagBlock.getData() == tx){
-				std::cerr<<"BLOCK FOUND BEFORE TRANSACTION"<<g[vd].dagBlock.getData()<<std::endl;
+//				std::cerr<<"BLOCK FOUND BEFORE TRANSACTION"<<g[vd].dagBlock.getData()<<std::endl;
 				return true;
 			}
 		}
-		std::cerr<<"BLOCK NOT FOUND BEFORE TRANSACTION"<<std::endl;
+//		std::cerr<<"BLOCK NOT FOUND BEFORE TRANSACTION"<<std::endl;
 		return false;
 
 	}
