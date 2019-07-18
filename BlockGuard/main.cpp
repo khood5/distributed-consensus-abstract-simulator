@@ -366,6 +366,7 @@ void syncBFT(const char ** argv){
 			}
 		}
 	}
+	int byzantinePeersCount = byzantinePeers.size();
 
 	//phase mining or collecting
 	const std::string MINING 			= "MINING";
@@ -518,8 +519,8 @@ void syncBFT(const char ** argv){
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
 				Logger::instance()->log("Shuffling "+std::to_string(peersCount/10)+" Peers.\n");
-				int shuffleCount = peersCount/10;
-				if (byzantinePeers.size()<peersCount/10)
+				int shuffleCount = byzantinePeersCount;
+				if (byzantinePeers.size()<byzantinePeersCount)
 					shuffleCount = byzantinePeers.size();
 				n.shuffleByzantines (shuffleCount);
 			}
