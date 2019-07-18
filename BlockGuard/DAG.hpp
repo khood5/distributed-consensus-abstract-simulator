@@ -236,7 +236,7 @@ public:
 		assert(cnt == verticesCount);
 
 		// Print topological order
-		for (const auto & i : top_order){ std::cerr<< i << " "; }
+//		for (const auto & i : top_order){ std::cerr<< i << " "; }
 
 		return top_order;
 
