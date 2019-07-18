@@ -630,8 +630,6 @@ void syncBFT(const char ** argv){
 		double waitTime = 0;
 
 		for(auto tx: n.transactions){
-			std::cerr<<tx->getIntroducedAt()<<std::endl;
-			std::cerr<<tx->getConfirmedAt()<<std::endl;
 			if(-1 != tx->getConfirmedAt()){
 				if(rangeStart<tx->getConfirmedAt() && tx->getConfirmedAt()<=rangeEnd){
 					confirmed++;
