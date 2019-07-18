@@ -481,8 +481,8 @@ void DS_PBFT::run(int iter){
 
 		//	shuffling byzantines
 		if(byzantineOrNot==1){
-			Logger::instance()->log("Shuffling " + std::to_string(size()/10) + " Peers.\n");
-			_peers.shuffleByzantines (size()/10);
+			Logger::instance()->log("Shuffling " + std::to_string(getByzantine().size()) + " Peers.\n");
+			_peers.shuffleByzantines (getByzantine().size());
 			//	n.shuffleByzantines (1);
 		}
 
