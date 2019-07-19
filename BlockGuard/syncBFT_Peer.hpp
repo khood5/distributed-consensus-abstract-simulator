@@ -36,6 +36,7 @@ struct syncBFTmessage {
 	std::string 									statusCert;
 	proposal                                		P;
 	commitCertificate                       		cc;
+	std::string										ccHash;
 	DAGBlock                                		dagBlock;
 	bool                                    		txFlag = false;
 	bool                                    		dagBlockFlag =false;
@@ -55,6 +56,7 @@ struct syncBFTmessage {
 		txFlag = rhs.txFlag;
 		dagBlockFlag = rhs.dagBlockFlag;
 		faulty = rhs.faulty;
+		ccHash = rhs.ccHash;
 	}
 
 	syncBFTmessage& operator=(const syncBFTmessage& rhs){
@@ -72,6 +74,7 @@ struct syncBFTmessage {
 		txFlag = rhs.txFlag;
 		dagBlockFlag = rhs.dagBlockFlag;
 		faulty = rhs.faulty;
+		ccHash = rhs.ccHash;
 		return *this;
 	}
 
