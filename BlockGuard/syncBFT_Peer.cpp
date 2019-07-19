@@ -174,16 +174,7 @@ void syncBFT_Peer::propose(){
 			break;
 		}
 	}
-
-	if(isByzantine ()){
-		if(dominantMsg == "1")
-			//	the proposal is faulty
-			valueFromLeader = "VALUE";
-		else
-			valueFromLeader = "CONFLICTING_VALUE";
-	}
-
-	assert(!dominantMsg.empty());
+ 	assert(!dominantMsg.empty());
 
 	for(auto & i : _inStream){
 
@@ -305,7 +296,9 @@ void syncBFT_Peer::commitFromLeader(){
 	}
 
 	commitMessage.P.clear();
-
+	if(isByzantine() && !faultyBlock){
+		valueFromLeader = "CONFLICTING_VALUE";
+	}
 	commitMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
 	commitMessage.value = valueFromLeader;
 	commitMessage.peerId = _id;
