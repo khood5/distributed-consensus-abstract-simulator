@@ -477,7 +477,9 @@ void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
 			nonByzantineIndex.push_back (i);
 		}
 	}
-
+	if(nonByzantineIndex.size() == 0){
+	    return;
+	}
 	while (shuffled<shuffleCount){
 		//find list of byzantineFlag peers
 		int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
@@ -487,6 +489,9 @@ void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
 		byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
 		nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
 		shuffled++;
+		if(nonByzantineIndex.size()==0 || byzantineIndex.size() == 0){
+		    return;
+		}
 	}
 }
 

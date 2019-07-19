@@ -518,7 +518,7 @@ void syncBFT(const char ** argv){
 
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
-				Logger::instance()->log("Shuffling "+std::to_string(peersCount/10)+" Peers.\n");
+				Logger::instance()->log("Shuffling "+std::to_string(byzantinePeersCount)+" Peers.\n");
 				int shuffleCount = byzantinePeersCount;
 				if (byzantinePeers.size()<byzantinePeersCount)
 					shuffleCount = byzantinePeers.size();
@@ -541,7 +541,9 @@ void syncBFT(const char ** argv){
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
 						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueueT.front(), securityLevel);
-						concurrentGroupCount++;
+                        Logger::instance()->log("BYZANTINE RATIO: "+std::to_string(co->getByzantineRatio())+" FOR COMMITTEE SIZED "+std::to_string(co->size())+"\n");
+
+                        concurrentGroupCount++;
 						txQueueT.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
