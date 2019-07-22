@@ -26,6 +26,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include <cmath>
 
 
 const int peerCount = 10;
@@ -342,7 +343,11 @@ void DS_bitcoin(const char ** argv){
 	int iterationCount 		= 	std::stoi(argv[7]);
 	double tolerance 		= 	std::stod(argv[8]);
 	int txRate 				= 	std::stoi(argv[9]);
+	int fixedSecurityLevel 		=	std::stoi(argv[10]);
 
+	if(fixedSecurityLevel != 0 ){
+        fixedSecurityLevel = static_cast<int>(peersCount / pow(2, 5) * pow(2 , fixedSecurityLevel));
+	}
 	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(avgDelay)+"_peerCount"+std::to_string(peersCount)
 						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
 
@@ -533,7 +538,12 @@ void DS_bitcoin(const char ** argv){
 				std::vector<DS_bCoin_Peer*> consensusGroup;
 				int concurrentGroupCount = 0;
 				do{
-					int securityLevel = n.pickSecurityLevel(peersCount);
+					int securityLevel;
+					if(fixedSecurityLevel != 0 ){
+						securityLevel = fixedSecurityLevel;
+					}else{
+						securityLevel = n.pickSecurityLevel(peersCount);
+					}
 					randIndex = rand()%n.size();
 
 					p = n[randIndex];
