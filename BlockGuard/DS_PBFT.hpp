@@ -169,6 +169,7 @@ public:
 
 	std::vector<int> 											defeatedCommittees{};
 	std::vector<int> 											totalCommittees{};
+	int                                                         prevConsensusAt = 0;
 
 };
 
@@ -218,6 +219,7 @@ DS_PBFT::DS_PBFT(const DS_PBFT &rhs){
 
 	int seed = (int)time(nullptr);
 	_randomGenerator = std::default_random_engine(seed);
+	prevConsensusAt = rhs.prevConsensusAt;
 }
 
 /*
@@ -481,9 +483,12 @@ void DS_PBFT::run(int iter){
 
 		//	shuffling byzantines
 		if(byzantineOrNot==1){
-			Logger::instance()->log("Shuffling " + std::to_string(getByzantine().size()) + " Peers.\n");
-			_peers.shuffleByzantines (getByzantine().size());
+		    int consensusInterval = iter - prevConsensusAt;
+
+			Logger::instance()->log("Shuffling " + std::to_string(consensusInterval) + " Peers.\n");
+			_peers.shuffleByzantines (consensusInterval);
 			//	n.shuffleByzantines (1);
+			prevConsensusAt = iter;
 		}
 
 		if(!_requestQueue.empty()){
