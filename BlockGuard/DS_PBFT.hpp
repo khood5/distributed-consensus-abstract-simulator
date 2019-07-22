@@ -170,6 +170,7 @@ public:
 	std::vector<int> 											defeatedCommittees{};
 	std::vector<int> 											totalCommittees{};
 	int                                                         prevConsensusAt = 0;
+	int                                                         fixedSecurityLevel;
 
 };
 
@@ -295,7 +296,11 @@ double DS_PBFT::pickSecrityLevel(){
 txRequest DS_PBFT::generateRequest(){
 	txRequest request;
 
-	request.securityLevel = pickSecrityLevel();
+	if(fixedSecurityLevel != 0 ){
+		request.securityLevel = fixedSecurityLevel;
+	}else{
+		request.securityLevel = pickSecrityLevel();
+	}
 	request.submissionRound = _currentRound;
 	request.sequenceNumber = ++sequenceNumber;
 

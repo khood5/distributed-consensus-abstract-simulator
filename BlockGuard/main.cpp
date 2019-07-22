@@ -12,6 +12,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include <cmath>
 
 #include "Network.hpp"
 #include "Peer.hpp"
@@ -742,7 +743,11 @@ void run_DS_PBFT(const char ** argv){
 	int iterationCount 		= 	std::stoi(argv[7]);
 	double tolerance 		= 	std::stod(argv[8]);
 	int txRate 				= 	std::stoi(argv[9]);
+	int fixedSecurityLevel 		=	std::stoi(argv[10]);
 
+	if(fixedSecurityLevel != 0 ){
+		fixedSecurityLevel = static_cast<int>(peersCount / pow(2, 5) * pow(2 , fixedSecurityLevel));
+	}
 	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(delay)+"_peerCount"+std::to_string(peersCount)
 						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
 
@@ -768,6 +773,7 @@ void run_DS_PBFT(const char ** argv){
 	instance.setFaultTolerance(FAULT);
 	instance.setDelay(delay);
 	instance.makeByzantines(numberOfPeers*tolerance);
+	instance.fixedSecurityLevel = fixedSecurityLevel;
 
 	std::map<int, double> confirmationPerIteration;
 	int prevConfirmationSize = peersCount + 1;
