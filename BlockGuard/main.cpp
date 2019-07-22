@@ -335,6 +335,7 @@ void syncBFT(const char ** argv){
 
 	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(avgDelay)+"_peerCount"+std::to_string(peersCount)
 						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
+	int prevConsensusAt 	= 0;
 
 	Network<syncBFTmessage, syncBFT_Peer> n;
 	n.setToRandom();
@@ -518,11 +519,15 @@ void syncBFT(const char ** argv){
 
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
-				Logger::instance()->log("Shuffling "+std::to_string(byzantinePeersCount)+" Peers.\n");
-				int shuffleCount = byzantinePeersCount;
-				if (byzantinePeers.size()<byzantinePeersCount)
-					shuffleCount = byzantinePeers.size();
+
+				int consensusInterval = i - prevConsensusAt;
+
+				Logger::instance()->log("Shuffling " + std::to_string(consensusInterval) + " Peers.\n");
+				int shuffleCount = consensusInterval;
+				if (shuffleCount > byzantinePeersCount)
+					shuffleCount = byzantinePeersCount;
 				n.shuffleByzantines (shuffleCount);
+				prevConsensusAt = i;
 			}
 
 			if(!txQueueT.empty()){
