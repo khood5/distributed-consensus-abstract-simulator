@@ -377,7 +377,8 @@ void DS_PBFT::run(int iter){
 	}else if(status == MINING){
 			for(auto & currentCommittee : currentCommittees){
 				currentCommittee->receive();
-				currentCommittee->preformComputation();
+				if(!currentCommittee->getConsensusFlag())
+					currentCommittee->preformComputation();
 				currentCommittee->transmit();
 			}
 
@@ -406,11 +407,6 @@ void DS_PBFT::run(int iter){
 				}
 
 				//				defeated Committee and number of committee formed by security level
-				for(auto & currentCommittee : currentCommittees){
-					if(currentCommittee->defeated)
-						defeatedCommittees.push_back(currentCommittee->getSecurityLevel());
-					totalCommittees.push_back(currentCommittee->getSecurityLevel());
-				}
 				confirmedMessagesPerIteration[iter] = confirmedMessages;
 				averageWaitingTimeByIteration[iter][numOfConfirmation] = waitingTime;
 				for(auto & currentCommittee : currentCommittees){
@@ -451,10 +447,6 @@ void DS_PBFT::run(int iter){
 					minerPeer->sendBlock();
 					minerPeer->transmit();
 				}
-				for(auto committee: currentCommittees ){
-					delete committee;
-				}
-				currentCommittees.clear();
 
 				status = COLLECTING;
 
@@ -468,7 +460,6 @@ void DS_PBFT::run(int iter){
 //			assert(_peers[a]->getConsensusTx().empty());
 		}
 
-		assert (currentCommittees.empty());
 
 		if(collectInterval > 0){
 			_peers.receive();
@@ -485,6 +476,19 @@ void DS_PBFT::run(int iter){
 			}
 
 		}
+
+		for(auto & currentCommittee : currentCommittees){
+			if(currentCommittee->defeated)
+				defeatedCommittees.push_back(currentCommittee->getSecurityLevel());
+			totalCommittees.push_back(currentCommittee->getSecurityLevel());
+		}
+
+		for(auto committee: currentCommittees ){
+			delete committee;
+		}
+		currentCommittees.clear();
+
+		assert (currentCommittees.empty());
 
 		//	shuffling byzantines
 		if(byzantineOrNot==1){

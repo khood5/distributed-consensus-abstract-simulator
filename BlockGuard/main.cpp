@@ -811,7 +811,17 @@ void run_DS_PBFT(const char ** argv){
 		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n");
 	}
 
-	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(instance[0]->getDAG().getSize() - numberOfPeers - 1)+"\n");
+	int confirmationCount = 0;
+
+	std::vector<DAGBlock> transactions = instance[0]->getDAG().getTransactions();
+
+	for(int i = numberOfPeers + 1; i< transactions.size(); i++){
+		if(!transactions[i].isByzantine()){
+			confirmationCount++;
+		}
+	}
+
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(confirmationCount)+"\n");
 
 	Logger::instance()->log("DEFEATED COMMITTEES COUNT \n");
 

@@ -43,6 +43,10 @@ public:
 	PBFT_Message*							commitMsg = nullptr;
 	int submissionRound = -1;
 
+	~PBFT_Committee(){
+		delete commitMsg;
+	}
+
 };
 
 PBFT_Committee::PBFT_Committee(std::vector<DS_PBFT_Peer *> peers, DS_PBFT_Peer *sender, std::string transaction, int sLevel, int seqNumber, int committeeId, int subRound) : Committee<DS_PBFT_Peer>(peers, sender, transaction, sLevel){

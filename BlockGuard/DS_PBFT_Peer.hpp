@@ -36,7 +36,7 @@ protected:
 public:
 	DS_PBFT_Peer                                    (std::string);
 	DS_PBFT_Peer                                    (const DS_PBFT_Peer&);
-	~DS_PBFT_Peer                                   ()                                              {};
+	~DS_PBFT_Peer                                   ()                                              { delete minedBlock; };
 
 	//setters
 	void                        setGroup                (int id)                                        {clearGroup();_groupId = id;};
@@ -82,7 +82,7 @@ public:
 	std::vector<DAGBlock>							dagBlocks={};
 	DAGBlock										*minedBlock = nullptr;
 	void 											setCommitteeNeighbours					(std::map<std::string, Peer<PBFT_Message>* > n) { _committeeMembers = std::move(n); }
-	void 											createBlock();
+	void 											createBlock									(bool);
 
 	bool 											terminated = true;
 	bool 											getTerminationFlag							() const { return terminated; }
@@ -213,7 +213,7 @@ void DS_PBFT_Peer::commitRequest(){
 
 	if(!viewChanged){
 		terminated = true;
-		createBlock();
+		createBlock(commit.defeated);
 	}else{
 		Logger::instance()->log("VIEW CHANGED\n");
 	}
@@ -370,7 +370,7 @@ void DS_PBFT_Peer::updateDAG() {
 	Logger::instance()->log("AFTER UPDATE DAG SIZE IS " + std::to_string(dag.getSize()) + "\n");
 }
 
-void DS_PBFT_Peer::createBlock(){
+void DS_PBFT_Peer::createBlock(bool byzantineFlag){
 	std::vector<string> hashesToConnectTo = dag.getTips();
 	std::string newBlockString;
 
@@ -379,8 +379,7 @@ void DS_PBFT_Peer::createBlock(){
 	newBlockString += "_" + std::to_string(seqNumber);
 	string newBlockHash = sha256(newBlockString);
 //	string newBlockHash = std::to_string(dag.getSize());
-
-	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, std::to_string(seqNumber), _byzantine));
+	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, std::to_string(seqNumber), byzantineFlag));
 }
 
 void DS_PBFT_Peer::receiveTx() {
