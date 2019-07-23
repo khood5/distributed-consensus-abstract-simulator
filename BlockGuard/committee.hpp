@@ -39,7 +39,7 @@ public:
 	virtual void							performComputation				() = 0;
 	void									receive							();
 	void									transmit						();
-
+	int										getSecurityLevel				(){return securityLevel;}
 };
 
 template <class peer_type>

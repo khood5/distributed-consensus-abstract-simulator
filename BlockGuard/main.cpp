@@ -487,10 +487,6 @@ void DS_bitcoin(const char ** argv){
 					Logger::instance()->log("TRANSMITTING MINED BLOCK FROM PEER " + minerPeer->id() + "\n");
 					minerPeer->transmit();
 				}
-				for(auto committee: currentCommittees ){
-					delete committee;
-				}
-				currentCommittees.clear();
 				Logger::instance()->log("ALL COMMITTEE CONSENSUS REACHED\n");
 
 				status =Collecting;
@@ -506,7 +502,6 @@ void DS_bitcoin(const char ** argv){
 				assert(n[a]->getConsensusTx().empty());
 			}
 
-			assert (currentCommittees.empty());
 
 			if(collectInterval > 0){
 				n.receive();
@@ -522,6 +517,16 @@ void DS_bitcoin(const char ** argv){
 				}
 
 			}
+
+			for(auto committee: currentCommittees ){
+				securityLevelCount[committee->getSecurityLevel()]++;
+				if(committee->getByzantineRatio()>=0.5){
+					defeatedCommittee[committee->getSecurityLevel()]++;
+				}
+				delete committee;
+			}
+			currentCommittees.clear();
+			assert (currentCommittees.empty());
 
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
@@ -562,10 +567,10 @@ void DS_bitcoin(const char ** argv){
 						txQueueT.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
-						securityLevelCount[securityLevel]++;
-						if(co->getByzantineRatio()>=0.5){
-							defeatedCommittee[securityLevel]++;
-						}
+//						securityLevelCount[securityLevel]++;
+//						if(co->getByzantineRatio()>=0.5){
+//							defeatedCommittee[securityLevel]++;
+//						}
 
 						for(auto &s: consensusGroup){
 							Logger::instance()->log(" " + s->id() + std::to_string(s->isByzantine()) + "\n");
@@ -592,10 +597,27 @@ void DS_bitcoin(const char ** argv){
 		}
 
 	}
+
+	for(auto committee: currentCommittees ){
+		delete committee;
+	}
+
 	Logger::instance()->log("FINALLY\n");
 	for(int i =0; i<n.size();i++){
 		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(n[i]->dag.getSize()) + "\n");
 	}
+
+	int confirmationCount = 0;
+
+	std::vector<DAGBlock> transactions = n[0]->getDAG().getTransactions();
+
+	for(int i = peersCount + 1; i< transactions.size(); i++){
+		if(!transactions[i].isByantine()){
+			confirmationCount++;
+		}
+	}
+
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(confirmationCount)+"\n");
 
 	Logger::instance()->log("SOME BYZANTINE COUNT \n");
 	std::map<int,int> someByzantineDups;
@@ -625,7 +647,7 @@ void DS_bitcoin(const char ** argv){
 		Logger::instance()->log(std::to_string(i) + " ");
 	}
 
-	Logger::instance()->log("SECURITY LEVELS CHOSEN\n");
+	Logger::instance()->log("\nSECURITY LEVELS CHOSEN\n");
 
 	for(auto l : securityLevels){
 		if(securityLevelCount.count(l)){

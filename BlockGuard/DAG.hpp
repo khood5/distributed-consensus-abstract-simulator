@@ -296,6 +296,14 @@ public:
 		return tips;
 	}
 
+	std::vector<DAGBlock> getTransactions()const{
+		std::vector<DAGBlock> transactions = std::vector<DAGBlock>();
+		for (auto vd : boost::make_iterator_range(vertices(g))) {
+			transactions.push_back(g[vd].dagBlock);
+		}
+		return transactions;
+	}
+
 };
 
 
