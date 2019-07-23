@@ -906,6 +906,18 @@ void run_DS_PBFT(const char ** argv){
 	for(auto waitTime: rollingAvgWaitTime){
 		Logger::instance()->log("ROLLING THROUGHPUT " + std::to_string(waitTime)+"\n");
 	}
+
+    double totalWaitTime = 0;
+	double totalConfirmed = 0;
+
+    for(auto &item: instance.confirmedMessagesPerIteration){
+	    for(int i = 0 ; i < item.second.size() ; i++){
+            totalConfirmed++;
+            totalWaitTime+= item.first - item.second[i].submission_round;
+	    }
+	}
+    Logger::instance()->log("AVERAGE WAITING TIME:\t" + std::to_string(totalWaitTime/totalConfirmed));
+
 }
 //////////////////////////////////////////////
 // util functions
