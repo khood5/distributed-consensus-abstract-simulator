@@ -465,11 +465,6 @@ void syncBFT(const char ** argv){
 				//	send blocks
 				Logger::instance()->log("CONSENSUS REACHEDDDD \n");
 				for(auto & currentCommittee : currentCommittees){
-					//  defeated committees count
-					if(currentCommittee->getDefeated()){
-						defeatedCommittee[currentCommittee->getSecurityLevel()]++;
-					}
-
 					//	propogate the block to whole network except the committee itself.
 					std::vector<std::string> peerIds = currentCommittee->getCommitteePeerIds();
 					std::map<std::string, Peer<syncBFTmessage>* > neighbours;
@@ -493,11 +488,6 @@ void syncBFT(const char ** argv){
 					Logger::instance()->log("TRANSMITTING MINED BLOCK FROM PEER "+ minerPeer->id() + "\n");
 					minerPeer->transmit();
 				}
-				for(auto committee: currentCommittees ){
-					delete committee;
-				}
-				currentCommittees.clear();
-
 				Logger::instance()->log("CONSENSUS REACHED IN ALL COMMITTEES, STARTING COLLECTION IN ITERATION "+std::to_string(i)+"\n");
 				status =COLLECTING;
 				collectInterval = 2 * n.maxDelay();
@@ -508,7 +498,6 @@ void syncBFT(const char ** argv){
 				assert(n[a]->isTerminated());
 				assert(n[a]->getConsensusTx().empty());
 			}
-			assert (currentCommittees.empty());
 
 			if(collectInterval > 0){
 				n.receive();
@@ -523,6 +512,18 @@ void syncBFT(const char ** argv){
 					continue;
 				}
 			}
+
+			for(auto committee: currentCommittees ){
+				securityLevelCount[committee->getSecurityLevel()]++;
+
+				//  defeated committees count
+				if(committee->getDefeated()){
+					defeatedCommittee[committee->getSecurityLevel()]++;
+				}
+				delete committee;
+			}
+			currentCommittees.clear();
+			assert (currentCommittees.empty());
 
 			//	shuffling byzantines
 			if(byzantineOrNot==1){
@@ -565,7 +566,7 @@ void syncBFT(const char ** argv){
 						txQueueT.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
-						securityLevelCount[securityLevel]++;
+//						securityLevelCount[securityLevel]++;
 					}
 				}while(!consensusGroup.empty() && !txQueueT.empty()); //build committees until a busy peer is jumped on.
 
@@ -588,12 +589,26 @@ void syncBFT(const char ** argv){
 
 	}
 
+	for(auto committee: currentCommittees ){
+		delete committee;
+	}
+
 	Logger::instance()->log("FINALLY\n");
 	for(int i =0; i<n.size();i++){
 		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(n[i]->getDAG().getSize()) + "\n");
 	}
 
-	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(n[0]->getDAG().getSize() - peersCount - 1)+"\n");
+	int confirmationCount = 0;
+
+	std::vector<DAGBlock> transactions = n[0]->getDAG().getTransactions();
+
+	for(int i = peersCount + 1; i< transactions.size(); i++){
+		if(!transactions[i].isByantine()){
+			confirmationCount++;
+		}
+	}
+
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(confirmationCount)+"\n");
 
 	Logger::instance()->log("DEFEATED COMMITTEES COUNT\n");
 	for(auto l : securityLevels){
