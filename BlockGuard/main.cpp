@@ -332,7 +332,7 @@ void syncBFT(const char ** argv){
 	int peersCount 			= 	std::stoi(argv[6]);
 	int iterationCount 		= 	std::stoi(argv[7]);
 	double tolerance 		= 	std::stod(argv[8]);
-	int txRate 				= 	std::stoi(argv[9]);
+	double txRate 			= 	std::stod(argv[9]);
 
 	int fixedSecurityLevel 		=	std::stoi(argv[10]);
 
@@ -403,11 +403,21 @@ void syncBFT(const char ** argv){
 		prevConfirmationSize = n[0]->getDAG().getSize();
 
 
-		if( i%txRate == 0  ){
-			txQueue.push_back("Tx_"+std::to_string(i));
-			Transaction *a = new Transaction("Tx_"+std::to_string(i), i);
-			txQueueT.push_back(a);
-			n.transactions.push_back(a);
+		if(txRate >= 1){
+			if( i%(int)txRate == 0  ){
+				txQueue.push_back("Tx_"+std::to_string(i));
+				Transaction *a = new Transaction("Tx_"+std::to_string(i), i);
+				txQueueT.push_back(a);
+				n.transactions.push_back(a);
+			}
+		}else{
+//			multiple transactions at each iteration
+			for(int t = 0; t< (1.0/txRate); t++){
+				txQueue.push_back("Tx_"+std::to_string(i)+"_"+std::to_string(t));
+				Transaction *a = new Transaction("Tx_"+std::to_string(i)+"_"+std::to_string(t), i);
+				txQueueT.push_back(a);
+				n.transactions.push_back(a);
+			}
 		}
 		Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
 		/*if(status == WAITING_FOR_TX){
