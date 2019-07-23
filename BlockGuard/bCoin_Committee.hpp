@@ -138,9 +138,10 @@ void bCoin_Committee::propagateBlock(){
 }
 
 void bCoin_Committee::initiate(){
-	dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
+//	dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
 
 	for(int i = 0 ; i< committeePeers.size(); i++){
+		committeePeers[i]->setConsensusTx(tx->getId());
 		committeePeers[i]->resetMineNextAt();
 		std::map<std::string, Peer<DS_bCoinMessage>* > neighbours;	//	previous group is dissolved when new group is selected
 

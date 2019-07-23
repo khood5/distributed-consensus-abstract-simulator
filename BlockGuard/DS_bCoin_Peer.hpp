@@ -77,6 +77,7 @@ public:
 	void 											setDAG									(const DAG &dagChain) { this->dag = dagChain; }
 	DAG                             				getDAG                           		() { return this->dag; }
 	void 											preformComputation						() override;
+	void		 									setConsensusTx								(std::string tx) { this->consensusTx = std::move(tx); }
 
 	bool 											mineBlock                               ();
 	void                                    		receiveMsg                              ();
