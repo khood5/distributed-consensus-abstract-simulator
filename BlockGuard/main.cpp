@@ -742,7 +742,7 @@ void run_DS_PBFT(const char ** argv){
 	int peersCount 			= 	std::stoi(argv[6]);
 	int iterationCount 		= 	std::stoi(argv[7]);
 	double tolerance 		= 	std::stod(argv[8]);
-	int txRate 				= 	std::stoi(argv[9]);
+	double txRate 			= 	std::stod(argv[9]);
 	int fixedSecurityLevel 		=	std::stoi(argv[10]);
 
 	if(fixedSecurityLevel != 0 ){
@@ -788,9 +788,15 @@ void run_DS_PBFT(const char ** argv){
 		confirmationPerIteration[i] = (double)(instance[0]->getDAG().getSize() - prevConfirmationSize);
 		prevConfirmationSize = instance[0]->getDAG().getSize();
 
-		if(i%txRate == 0){
-			Logger::instance()->log("Making a request\n");
-			instance.makeRequest();numberOfRequests++;
+		if(txRate >= 1){
+			if( i%(int)txRate == 0  ){
+				instance.makeRequest();numberOfRequests++;
+			}
+		}else{
+//			multiple transactions at each iteration
+			for(int t = 0; t< (1.0/txRate); t++){
+				instance.makeRequest();numberOfRequests++;
+			}
 		}
 
 		Logger::instance()->log("------------------ITERATION-----------------\n");
