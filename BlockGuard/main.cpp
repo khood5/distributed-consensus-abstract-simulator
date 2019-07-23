@@ -12,6 +12,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
+#include <Experiments/txRate.h>
 
 #include "./Common/Network.hpp"
 #include "./Common/Peer.hpp"
@@ -100,6 +101,19 @@ int main(int argc, const char * argv[]) {
 		for(int i = 0; i< runs; i++){
 			run_DS_PBFT(argv);
 		}
+    } else if ("tx"){
+        std::ofstream csv;
+        std::ofstream log;
+        log.open(filePath + "tx.log");
+        if ( log.fail() ){
+            std::cerr << "Error: could not open file: "<< filePath + "tx.log" << std::endl;
+        }
+
+        csv.open(filePath + "tx.csv");
+        if ( log.fail() ){
+            std::cerr << "Error: could not open file: "<< filePath + "tx.csv" << std::endl;
+        }
+        txRate(csv,log);
     }
 
     return 0;

@@ -7,6 +7,7 @@
 //
 
 #include "metrics.hpp"
+#include <cassert>
 
 double ratioOfSecLvl(std::vector<DAGBlock> globalLedger, double secLvl){
     double total = globalLedger.size();
@@ -62,6 +63,9 @@ double waitTimeRolling(std::vector<DAGBlock> globalLedger, int fromRound){
     double totalNumberOfTrnasactions = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
         if(entry->getConfirmedRound() >= fromRound){
+            assert(entry->getConfirmedRound() != -1);
+            assert(entry->getSubmissionRound() != -1);
+
             sumOfWaitingTime += entry->getConfirmedRound() - entry->getSubmissionRound();
             totalNumberOfTrnasactions++;
         }

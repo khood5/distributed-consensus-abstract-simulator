@@ -109,6 +109,7 @@ void bCoin_Committee::propagateBlock(){
 }
 
 void bCoin_Committee::initiate(int submissionRound){
+    assert(submissionRound != -1);
     dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx, submissionRound);
     
     for(int i = 0 ; i< committeePeers.size(); i++){

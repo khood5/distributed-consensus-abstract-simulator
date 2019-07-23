@@ -41,6 +41,7 @@ bool DS_bCoin_Peer::mineBlock() {
 		string newBlockHash = std::to_string(dag.getSize());
 
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
+        assert(submissionRound != -1);
         messageToSend.dagBlock.setSubmissionRound(submissionRound);
         messageToSend.dagBlock.setConfirmedRound(_clock);
         
@@ -129,6 +130,7 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 	txMessage.message.push_back(tx+"_"+id());
 	txMessage.txFlag = true;
     txMessage.submissionRound = submissionRound;
+    this->submissionRound = submissionRound;
 	for(auto &committeePeer: committeeMembers){
 
 		if(!(committeePeer->id()==id())){

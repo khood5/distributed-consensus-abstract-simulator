@@ -139,41 +139,40 @@ void bCoinReferenceCommittee::makeRequest(int secLevel){
     // get front of queue not necessarily the transaction we just made
     req = _requestQueue.front();
     int freeGroup = getFreeGroups().size();
-    if(freeGroup < req.securityLevel){
-        return; // if we do not have enough free groups level that transaction in queue and do nothing
-    }
-    
-    _requestQueue.pop_front();
-    vector<DS_bCoin_Peer*> peersForCommittee = vector<DS_bCoin_Peer*>();
-    vector<bCoinGroup> freeGroups = getFreeGroups();
-    while((peersForCommittee.size()/_groupSize) < req.securityLevel){
-        bCoinGroup group = getFreeGroups().back();
-        // add members
-        for(int i = 0; i < group.size(); i++){
-            peersForCommittee.push_back(group[i]);
-            group[i]->setBusy(true);
+    while(freeGroup > req.securityLevel && !_requestQueue.empty()) {
+        _requestQueue.pop_front();
+        vector<DS_bCoin_Peer *> peersForCommittee = vector<DS_bCoin_Peer *>();
+        vector<bCoinGroup> freeGroups = getFreeGroups();
+        while ((peersForCommittee.size() / _groupSize) < req.securityLevel) {
+            bCoinGroup group = getFreeGroups().back();
+            // add members
+            for (int i = 0; i < group.size(); i++) {
+                peersForCommittee.push_back(group[i]);
+                group[i]->setBusy(true);
+            }
+            // remove groups from list of free groups
+            freeGroups.pop_back();
         }
-        // remove groups from list of free groups
-        freeGroups.pop_back();
-    }
-    
-    // add new committee to list
-    bCoin_Committee committee = bCoin_Committee(peersForCommittee,peersForCommittee[0], std::to_string(req.submissionRound), req.securityLevel);
-    for(int i = 0; i<committee.size(); i++){
-        committee[i]->resetMiningClock();
-    }
+
+        // add new committee to list
+        bCoin_Committee committee = bCoin_Committee(peersForCommittee, peersForCommittee[0], std::to_string(req.submissionRound), req.securityLevel);
+        for (int i = 0; i < committee.size(); i++) {
+            committee[i]->resetMiningClock();
+        }
 
 
-    if(committee.getByzantineRatio() > 0.5){
-                 if (req.securityLevel == _securityLevel1){_secLevel1Defeated++;}
-            else if (req.securityLevel == _securityLevel2){_secLevel2Defeated++;}
-            else if (req.securityLevel == _securityLevel3){_secLevel3Defeated++;}
-            else if (req.securityLevel == _securityLevel4){_secLevel4Defeated++;}
-            else if (req.securityLevel == _securityLevel5){_secLevel5Defeated++;}
-            else                                          {assert(false);}
+        if (committee.getByzantineRatio() > 0.5) {
+            if (req.securityLevel == _securityLevel1) { _secLevel1Defeated++; }
+            else if (req.securityLevel == _securityLevel2) { _secLevel2Defeated++; }
+            else if (req.securityLevel == _securityLevel3) { _secLevel3Defeated++; }
+            else if (req.securityLevel == _securityLevel4) { _secLevel4Defeated++; }
+            else if (req.securityLevel == _securityLevel5) { _secLevel5Defeated++; }
+            else { assert(false); }
         }
-    committee.initiate(req.submissionRound);
-    _currentCommittees.push_back(committee);
+        committee.initiate(req.submissionRound);
+        _currentCommittees.push_back(committee);
+        req = _requestQueue.front();
+    }
 }
 
 void bCoinReferenceCommittee::shuffleByzantines(int n){
