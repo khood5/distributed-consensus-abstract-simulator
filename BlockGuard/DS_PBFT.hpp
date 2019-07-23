@@ -357,7 +357,7 @@ void DS_PBFT::serveRequest(){
 void DS_PBFT::run(int iter){
 //	todo instead of in preformComputation, placed here
 	_currentRound++;
-	if(status == WAITING_FOR_TX){
+	/*if(status == WAITING_FOR_TX){
 		//	wait for max delay until all committees receive their transactions
 		if(txWaitTime>=0 ){
 			for(auto & currentCommittee : currentCommittees) {
@@ -374,7 +374,8 @@ void DS_PBFT::run(int iter){
 			txWaitTime = 2*_peers.maxDelay();
 		}
 
-	}else if(status == MINING){
+	}else */
+	if(status == MINING){
 			for(auto & currentCommittee : currentCommittees){
 				currentCommittee->receive();
 				if(!currentCommittee->getConsensusFlag())
@@ -542,8 +543,8 @@ void DS_PBFT::run(int iter){
 			for(auto &committee: currentCommittees){
 				committee->initiate();
 			}
-//			status = MINING;
-			status = WAITING_FOR_TX;
+			status = MINING;
+//			status = WAITING_FOR_TX;
 		}
 
 		/*for(int i = 0; i < groupsInCommittee.size(); i++){
