@@ -148,6 +148,7 @@ public:
 	void 											setTerminated								(bool flag){ this->terminated = flag;}
 	void		 									setLeaderId									(std::string id) { this->leaderId = std::move(id); }
 	void		 									setCommitteeSize							(int size) { this->committeeSize = std::move(size); }
+	void		 									setConsensusTx								(std::string tx) { this->consensusTx = std::move(tx); }
 
 	DAG                             				getDAG                           			() { return this->dag; }
 	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						() { return committeeNeighbours; }

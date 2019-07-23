@@ -410,7 +410,7 @@ void syncBFT(const char ** argv){
 			n.transactions.push_back(a);
 		}
 		Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
-		if(status == WAITING_FOR_TX){
+		/*if(status == WAITING_FOR_TX){
 //			wait for max delay until all committees receive their transactions
 			if(waitTime >=0 ){
 				for(auto & currentCommittee : currentCommittees) {
@@ -427,7 +427,8 @@ void syncBFT(const char ** argv){
 				waitTime = 2*n.maxDelay();
 			}
 
-		}else if(status == MINING){
+		}*/
+		if(status == MINING){
 			waitTime--;
 
 			for(auto & currentCommittee : currentCommittees){
@@ -582,7 +583,7 @@ void syncBFT(const char ** argv){
 					committee->initiate();
 				}
 //				change status after waiting for all peers to get their transaction
-				status = WAITING_FOR_TX;
+				status = MINING;
 			}
 
 		}
@@ -680,6 +681,18 @@ void syncBFT(const char ** argv){
 	for(auto waitTime: rollingAvgWaitTime){
 		Logger::instance()->log("ROLLING WAITING TIME " + std::to_string(waitTime)+"\n");
 	}
+
+	double totalWaitTime = 0;
+	double totalConfirmed = 0;
+
+	for(auto &tx: n.transactions){
+		if(-1 != tx->getConfirmedAt()){
+			totalConfirmed++;
+			totalWaitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
+		}
+	}
+	Logger::instance()->log("AVERAGE WAITING TIME:\t" + std::to_string(totalWaitTime/totalConfirmed));
+
 }
 
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){

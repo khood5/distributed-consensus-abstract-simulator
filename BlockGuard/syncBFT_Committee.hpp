@@ -161,9 +161,10 @@ void syncBFT_Committee::performComputation(){
 }
 
 void syncBFT_Committee::initiate(){
-	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
+//	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx->getId());
 	int byzantineCount = 0;
 	for(int i = 0 ; i< committeePeers.size(); i++){
+		committeePeers[i]->setConsensusTx(tx->getId());
 		if(committeePeers[i]->isByzantine()){
 			byzantineCount++;
 		}
