@@ -746,7 +746,6 @@ void DS_bitcoin(const char ** argv){
 			totalConfirmed++;
 			totalWaitTime+= tx->getConfirmedAt() - tx->getIntroducedAt();
 		}
-		std::cerr<<tx->getIntroducedAt()<<":"<<tx->getConfirmedAt()<<std::endl;
 	}
 	Logger::instance()->log("AVERAGE WAITING TIME:\t" + std::to_string(totalWaitTime/totalConfirmed));
 
