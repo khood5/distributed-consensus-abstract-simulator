@@ -12,7 +12,7 @@
 //
 //
 void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log){
-    std::string header = "Committee Size,totalDef,totalHonest, Ratio Defeated Committees, Confirmed/Submitted";
+    std::string header = "Committee Size,totalDef,totalHonest, Ratio Defeated Committees, Confirmed/Submitted, Average Wiating Time";
     csv<< header<< std::endl;
     
     // sec lvl 1
@@ -29,8 +29,10 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest(secLvel);
-            totalSub++;
+            if(i%2){
+                system.makeRequest(secLvel);
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -42,7 +44,8 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        double waitingTime = waitTime(system.getGlobalLedger());
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<< ","<< waitingTime<<std::endl;
     } // end loop runs
     
     // sec lvl 2
@@ -59,8 +62,10 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest(secLvel);
-            totalSub++;
+            if(i%2){
+                system.makeRequest(secLvel);
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -72,7 +77,8 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        double waitingTime = waitTime(system.getGlobalLedger());
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<< ","<< waitingTime<<std::endl;
     } // end loop runs
     
     // sec lvl 3
@@ -89,8 +95,10 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest(secLvel);
-            totalSub++;
+            if(i%2){
+                system.makeRequest(secLvel);
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -102,7 +110,8 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        double waitingTime = waitTime(system.getGlobalLedger());
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<< ","<< waitingTime<<std::endl;
     } // end loop runs
     
     // sec lvl 4
@@ -119,8 +128,10 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest(secLvel);
-            totalSub++;
+            if(i%2){
+                system.makeRequest(secLvel);
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -132,7 +143,8 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        double waitingTime = waitTime(system.getGlobalLedger());
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<< ","<< waitingTime<<std::endl;
     } // end loop runs
     
     // sec lvl 5
@@ -149,8 +161,10 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest(secLvel);
-            totalSub++;
+            if(i%2){
+                system.makeRequest(secLvel);
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -162,7 +176,8 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        double waitingTime = waitTime(system.getGlobalLedger());
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<< ","<< waitingTime<<std::endl;
     } // end loop runs
 }
 
@@ -190,9 +205,10 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -231,9 +247,10 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -272,9 +289,10 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -313,9 +331,10 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -363,9 +382,10 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -404,9 +424,10 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -445,9 +466,10 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -486,9 +508,10 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            
-            totalSub++;
+            if(i%2){
+                system.makeRequest();
+                totalSub++;
+            }
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();

@@ -47,7 +47,7 @@ double waitTime(std::vector<DAGBlock> globalLedger){
         totalNumberOfTrnasactions++;
     }
     if(totalNumberOfTrnasactions == 0){
-        return 0;
+        return -1;
     }else{
         return sumOfWaitingTime/totalNumberOfTrnasactions;
     }
@@ -109,4 +109,28 @@ int totalNumberOfCorrectCommittees(std::vector<DAGBlock> globalLedger, double se
         }
     }
     return total;
+}
+
+int rollingDefeatedCommittees(std::vector<DAGBlock> globalLedger, double secLvl, int from){
+    int total = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->getSecruityLevel() == secLvl*GROUP_SIZE){
+            if(entry->isByzantine()&& entry->getConfirmedRound() >= from){
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+int rollingDefeatedTrnasactions(std::vector<DAGBlock> globalLedger, int from){
+    int defeated = 0;
+    
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->isByzantine() && entry->getConfirmedRound() >= from){
+            defeated++;
+        }
+    }
+    
+    return defeated;
 }
