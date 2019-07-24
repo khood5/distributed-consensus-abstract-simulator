@@ -151,27 +151,26 @@ void SBFTReferenceCommittee::makeRequest(int secLevel){
     request.submissionRound = _clock;
     request.securityLevel = secLevel == -1 ? getRandomSecLevel() : secLevel;
     _requestQueue.push_back(request);
-    if(_groups.size() < _requestQueue.front().securityLevel){
-        return ;
-    }
-    request = _requestQueue.front();
-    _requestQueue.pop_front();
-    
-    std::vector<syncBFT_Peer*> peersInCommittee = std::vector<syncBFT_Peer*>();
-    while(peersInCommittee.size()/_groupSize < request.securityLevel){
-        SBFTGroup nextGroup = _groups.back();
-        for(auto peer = nextGroup.begin(); peer != nextGroup.end(); peer++){
-            peersInCommittee.push_back(*peer);
+    while(_groups.size() >= request.securityLevel && !_requestQueue.empty()){
+        _requestQueue.pop_front();
+        
+        std::vector<syncBFT_Peer*> peersInCommittee = std::vector<syncBFT_Peer*>();
+        while(peersInCommittee.size()/_groupSize < request.securityLevel){
+            SBFTGroup nextGroup = _groups.back();
+            for(auto peer = nextGroup.begin(); peer != nextGroup.end(); peer++){
+                peersInCommittee.push_back(*peer);
+            }
+            _groups.pop_back();
         }
-        _groups.pop_back();
+        syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.submissionRound)+std::to_string(_clock),request.securityLevel);
+        newCommittee.refreshPeers();
+        newCommittee.initiate();
+        for(int i = 0; i < newCommittee.size(); i++){
+            newCommittee[i]->setTerminated(false);
+        }
+        _activeCommittees.push_back(SBFTState(WAITING_FOR_TX,newCommittee));
+        request = _requestQueue.front();
     }
-    syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.submissionRound)+std::to_string(_clock),request.securityLevel);
-    newCommittee.refreshPeers();
-    newCommittee.initiate();
-    for(int i = 0; i < newCommittee.size(); i++){
-        newCommittee[i]->setTerminated(false);
-    }
-    _activeCommittees.push_back(SBFTState(WAITING_FOR_TX,newCommittee));
 }
 
 void SBFTReferenceCommittee::shuffleByzantines(int n){

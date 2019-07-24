@@ -496,6 +496,7 @@ void txRate(std::ofstream &csv, std::ofstream &log){
                 double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
                 double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
                 double avgWaitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
+                assert(avgWaitingTime >= -1);
                 csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< avgWaitingTime << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
                 prvConfirmed = system.getGlobalLedger().size();
                 prvSub = totalSub;

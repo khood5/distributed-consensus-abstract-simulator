@@ -157,33 +157,34 @@ void PBFTReferenceCommittee::serveRequest(){
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee
-    if(_freeGroups.size() < groupsNeeded){
-        return;
-    }
-    _requestQueue.erase(_requestQueue.begin());
-    
-    std::vector<int> groupsInCommittee = std::vector<int>();
-    while(groupsInCommittee.size() < groupsNeeded){
-        int groupId = _freeGroups.back();
-        _busyGroups.push_back(groupId);
-        groupsInCommittee.push_back(groupId);
-        _freeGroups.pop_back();
-    }
-    
-    makeCommittee(groupsInCommittee);
-    initCommittee(groupsInCommittee);
-    
-    for(int i = 0; i < groupsInCommittee.size(); i++){
-        aGroup group = getGroup(groupsInCommittee[i]);
-        for(int j = 0; j < group.size(); j++){
-            if(group[j]->isPrimary()){
-                group[j]->makeRequest(_nextSquenceNumber,submissionRound);
-                _nextSquenceNumber++;
-                return;
+    while(_freeGroups.size() >= groupsNeeded && !_requestQueue.empty()){
+        _requestQueue.erase(_requestQueue.begin());
+        
+        std::vector<int> groupsInCommittee = std::vector<int>();
+        while(groupsInCommittee.size() < groupsNeeded){
+            int groupId = _freeGroups.back();
+            _busyGroups.push_back(groupId);
+            groupsInCommittee.push_back(groupId);
+            _freeGroups.pop_back();
+        }
+        
+        makeCommittee(groupsInCommittee);
+        initCommittee(groupsInCommittee);
+        
+        for(int i = 0; i < groupsInCommittee.size(); i++){
+            aGroup group = getGroup(groupsInCommittee[i]);
+            for(int j = 0; j < group.size(); j++){
+                if(group[j]->isPrimary()){
+                    group[j]->makeRequest(_nextSquenceNumber,submissionRound);
+                    _nextSquenceNumber++;
+                    return;
+                }
             }
         }
+        groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
+        submissionRound = _requestQueue.front().submissionRound;
+        updateBusyGroup();
     }
-    
 }
 
 void PBFTReferenceCommittee::updateBusyGroup(){
