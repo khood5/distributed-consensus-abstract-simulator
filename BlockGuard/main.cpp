@@ -654,13 +654,13 @@ void syncBFT(const char ** argv){
 	int rangeStart = 0;
 	std::vector<double> rollingAvgThroughputTimeline;
 
-	for(rangeStart = 0; (rangeStart + 100)<=iterationCount; rangeStart++){
-		int rangeEnd = rangeStart + 100;
+	for(rangeStart = 0; (rangeStart + 200)<=iterationCount; rangeStart++){
+		int rangeEnd = rangeStart + 200;
 		double confirmations = 0;
 		for(int i = rangeStart; i< rangeEnd; i++){
 			confirmations+= confirmationPerIteration[i];
 		}
-		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
+		rollingAvgThroughputTimeline.push_back(confirmations/(200.0/txRate));
 	}
 
 	for(auto timeline: rollingAvgThroughputTimeline){
@@ -671,8 +671,8 @@ void syncBFT(const char ** argv){
 
 	//	rolling average waiting time
 	std::vector<double> rollingAvgWaitTime;
-	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
-		int rangeEnd = rangeStart + 100;
+	for(rangeStart=0;(rangeStart+200)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 200;
 		int confirmed = 0;
 		double waitTime = 0;
 
