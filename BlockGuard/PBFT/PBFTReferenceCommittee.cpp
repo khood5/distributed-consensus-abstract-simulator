@@ -112,7 +112,7 @@ void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
 }
 
 double PBFTReferenceCommittee::pickSecrityLevel(){
-
+    //return _securityLevel1;
     std::uniform_int_distribution<int> coin(0,1);
     int trails = 0;
     int heads = coin(_randomGenerator);
@@ -155,9 +155,8 @@ void PBFTReferenceCommittee::serveRequest(){
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
     int submissionRound = _requestQueue.front().submissionRound;
     updateBusyGroup();
-    
-    // return if there is not enough free groups to make the committee
     while(_freeGroups.size() >= groupsNeeded && !_requestQueue.empty()){
+        assert(_freeGroups.size() + _busyGroups.size() == _groups.size());
         _requestQueue.erase(_requestQueue.begin());
         
         std::vector<int> groupsInCommittee = std::vector<int>();
@@ -170,14 +169,12 @@ void PBFTReferenceCommittee::serveRequest(){
         
         makeCommittee(groupsInCommittee);
         initCommittee(groupsInCommittee);
-        
         for(int i = 0; i < groupsInCommittee.size(); i++){
             aGroup group = getGroup(groupsInCommittee[i]);
             for(int j = 0; j < group.size(); j++){
                 if(group[j]->isPrimary()){
                     group[j]->makeRequest(_nextSquenceNumber,submissionRound);
                     _nextSquenceNumber++;
-                    return;
                 }
             }
         }
