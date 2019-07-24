@@ -153,7 +153,8 @@ public:
 	void 											setTerminated								(bool flag)                                         { this->terminated = flag;}
 	void		 									setLeaderId									(std::string id)                                    { this->leaderId = std::move(id); }
 	void		 									setCommitteeSize							(int size)                                          { this->committeeSize = std::move(size); }
-
+    void                                            setSubmissionRound                          (int s)                                             { submissionRound = s;};
+    
     // getters
 	DAG                             				getDAG                           			()                                                  { return this->dag; }
     DAG                                             getDAG                                      ()const                                             { return this->dag; }

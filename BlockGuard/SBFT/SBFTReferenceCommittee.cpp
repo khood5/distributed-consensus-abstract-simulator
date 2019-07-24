@@ -169,7 +169,7 @@ void SBFTReferenceCommittee::makeRequest(int secLevel){
         }
         syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.submissionRound)+std::to_string(_clock),request.securityLevel);
         newCommittee.refreshPeers();
-        newCommittee.initiate();
+        newCommittee.initiate(request.submissionRound);
         for(int i = 0; i < newCommittee.size(); i++){
             newCommittee[i]->setTerminated(false);
         }

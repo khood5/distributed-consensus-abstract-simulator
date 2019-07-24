@@ -154,3 +154,24 @@ void syncBFT_Committee::initiate(){
 		defeated = true;
 	}
 }
+
+void syncBFT_Committee::initiate(int subRound){
+    dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
+    int byzantineCount = 0;
+    for(int i = 0 ; i< committeePeers.size(); i++){
+        if(committeePeers[i]->isByzantine()){
+            byzantineCount++;
+        }
+        committeePeers[i]->setSubmissionRound(subRound);
+        std::map<std::string, Peer<syncBFTmessage>* > neighbours;    //previous group is dissolved when new group is selected
+        for(int j = 0; j< committeePeers.size(); j++){
+            if(i != j){
+                neighbours[committeePeers[j]->id()] = committeePeers[j];
+            }
+        }
+        dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
+    }
+    if(byzantineCount>= (size() - 1)/2 +1){
+        defeated = true;
+    }
+}

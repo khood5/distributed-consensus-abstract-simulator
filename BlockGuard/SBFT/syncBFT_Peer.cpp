@@ -574,8 +574,6 @@ void syncBFT_Peer::makeRequest(const vector<syncBFT_Peer *>& committeeMembers, c
 	syncBFTmessage txMessage;
 	txMessage.peerId = id();
 	txMessage.message.push_back(tx+"_"+id());
-	txMessage.submissionRound = _clock;
-    submissionRound = _clock;
 	txMessage.txFlag = true;
 	for(auto &committeePeer: committeeMembers){
 		Logger::instance()->log("Peer " + id() + " transmitting the transaction " + tx + " to " + committeePeer->id() + "\n");
@@ -617,7 +615,6 @@ void syncBFT_Peer::updateDAG() {
 		if(i.getMessage().dagBlockFlag){
             DAGBlock newBlock = i.getMessage().dagBlock;
             newBlock.setConfirmedRound(_clock);
-            newBlock.setSubmissionRound(submissionRound);
             newBlock.setSecruityLevel(committeeNeighbours.size() + 1);
 			dagBlocks.push_back(i.getMessage().dagBlock);
 		}
@@ -643,7 +640,6 @@ void syncBFT_Peer::receiveTx() {
 	assert(_inStream.size() == 1 || !consensusTx.empty());
 	if(consensusTx.empty()){
 		consensusTx = _inStream[0].getMessage().message[0];
-        submissionRound = _inStream[0].getMessage().submissionRound;
         assert(submissionRound != -1);
         std::cout<< std::endl<< "INFO: submissionRound "<< submissionRound << std::endl;
 	}

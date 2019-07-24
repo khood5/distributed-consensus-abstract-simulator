@@ -37,6 +37,7 @@ public:
 	void 									leaderChange					();
 	void									refreshPeers					();
 	void									initiate						();
+    void                                    initiate                        (int subRound);
 	bool 									getDefeated						()																		{return defeated;}
 
 };
