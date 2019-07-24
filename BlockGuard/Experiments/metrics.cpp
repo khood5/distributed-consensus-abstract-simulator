@@ -71,7 +71,7 @@ double waitTimeRolling(std::vector<DAGBlock> globalLedger, int fromRound){
         }
     }
     averageWaitTime = sumOfWaitingTime/totalNumberOfTrnasactions;
-    
+    assert(averageWaitTime >= -1);
     return averageWaitTime;
 }
 
