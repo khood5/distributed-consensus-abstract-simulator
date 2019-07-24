@@ -389,7 +389,11 @@ void DS_PBFT::run(int iter){
 			while(it != currentCommittees.end()) {
 				if(!(*it)->getConsensusFlag()) {
 					consensus = false;
-					break;
+//					break;
+				}else{
+					if((*it)->consensusAt == -1 ){
+						(*it)->consensusAt = iter;
+					}
 				}
 
 				++it;
@@ -402,9 +406,14 @@ void DS_PBFT::run(int iter){
 				int numOfConfirmation = 0;
 				std::vector<PBFT_Message> confirmedMessages;
 				for(auto & currentCommittee : currentCommittees){
+					if(!confirmedMessagesPerIteration[currentCommittee->consensusAt].empty()){
+						confirmedMessages = confirmedMessagesPerIteration[currentCommittee->consensusAt];
+						confirmedMessages.push_back(*currentCommittee->commitMsg);
+					} else{
+						confirmedMessages.push_back(*currentCommittee->commitMsg);
+					}
 					waitingTime+= iter - currentCommittee->commitMsg->submission_round;
 					numOfConfirmation++;
-					confirmedMessages.push_back(*currentCommittee->commitMsg);
 				}
 
 				//				defeated Committee and number of committee formed by security level

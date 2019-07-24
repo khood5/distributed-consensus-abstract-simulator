@@ -42,6 +42,7 @@ public:
 	int 									committeeId = -1;
 	PBFT_Message*							commitMsg = nullptr;
 	int submissionRound = -1;
+	int 									consensusAt = -1;
 
 	~PBFT_Committee(){
 		delete commitMsg;
