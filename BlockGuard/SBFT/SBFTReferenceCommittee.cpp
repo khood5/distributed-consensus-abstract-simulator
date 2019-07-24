@@ -77,6 +77,11 @@ void SBFTReferenceCommittee::preformComputation(){
 
 void SBFTReferenceCommittee::receive(){
     _clock++;
+    for(auto group = _groups.begin(); group != _groups.end(); group++){
+        for(int i = 0; i < group->size(); i++){
+            (*group)[i]->receive();
+        }
+    }
     for(auto iter = _activeCommittees.begin(); iter != _activeCommittees.end(); iter++){
         syncBFT_Committee *committee = &iter->second;
         committee->clockTik();

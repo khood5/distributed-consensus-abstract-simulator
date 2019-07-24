@@ -109,7 +109,8 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 	string newBlockHash = std::to_string(dag.getSize());
 
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, faultyBlock));
-	minedBlock->setSubmissionRound(_clock);
+	minedBlock->setConfirmedRound(_clock);
+	minedBlock->setSubmissionRound(submissionRound);
     minedBlock->setSecruityLevel(committeeNeighbours.size() + 1);
 }
 
@@ -407,6 +408,7 @@ void syncBFT_Peer::notify(){
 	{
 		if (pair.second >= (committeeSize - 1)/2 +1){
 			committed = true;
+			committed = true;
 		}
 	}
 	if(committed){
@@ -568,7 +570,8 @@ void syncBFT_Peer::makeRequest(const vector<syncBFT_Peer *>& committeeMembers, c
 	syncBFTmessage txMessage;
 	txMessage.peerId = id();
 	txMessage.message.push_back(tx+"_"+id());
-    txMessage.submissionRound = _clock;
+	txMessage.submissionRound = _clock;
+    submissionRound = _clock;
 	txMessage.txFlag = true;
 	for(auto &committeePeer: committeeMembers){
 		Logger::instance()->log("Peer " + id() + " transmitting the transaction " + tx + " to " + committeePeer->id() + "\n");
