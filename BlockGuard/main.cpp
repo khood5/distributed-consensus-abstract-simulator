@@ -869,13 +869,13 @@ void run_DS_PBFT(const char ** argv){
 	}
 	int rangeStart = 0;
 	std::vector<double> rollingAvgThroughputTimeline;
-	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
-		int rangeEnd = rangeStart + 100;
+	for(rangeStart=0;(rangeStart+200)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 200;
 		double confirmations = 0;
 		for(int i = rangeStart; i<rangeEnd; i++){
 			confirmations+= confirmationPerIteration[i];
 		}
-		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
+		rollingAvgThroughputTimeline.push_back(confirmations/(200.0/txRate));
 	}
 
 	for(auto timeline: rollingAvgThroughputTimeline){
@@ -893,8 +893,8 @@ void run_DS_PBFT(const char ** argv){
 
 //	rolling average waiting time
 	std::vector<double> rollingAvgWaitTime;
-	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
-		int rangeEnd = rangeStart + 100;
+	for(rangeStart=0;(rangeStart+200)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 200;
 		int confirmed = 0;
 		double waitTime = 0;
 		for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
@@ -910,7 +910,7 @@ void run_DS_PBFT(const char ** argv){
 
 	Logger::instance()->log("ROLLING AVERAGE Throughput\n");
 	for(auto waitTime: rollingAvgWaitTime){
-		Logger::instance()->log("ROLLING THROUGHPUT " + std::to_string(waitTime)+"\n");
+		Logger::instance()->log("ROLLING AVERAGE WAITING TIME " + std::to_string(waitTime)+"\n");
 	}
 
     double totalWaitTime = 0;
