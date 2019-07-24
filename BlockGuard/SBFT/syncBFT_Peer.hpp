@@ -41,7 +41,7 @@ struct syncBFTmessage {
 	bool                                    		txFlag          = false;
 	bool                                    		dagBlockFlag    = false;
 	bool											faulty 			= false;
-    int                                             submissionRound = 0;
+    int                                             submissionRound = -1;
 
 	syncBFTmessage() = default;
 
@@ -59,6 +59,7 @@ struct syncBFTmessage {
 		dagBlockFlag = rhs.dagBlockFlag;
 		faulty = rhs.faulty;
 		ccHash = rhs.ccHash;
+        submissionRound = rhs.submissionRound;
 	}
 
 	syncBFTmessage& operator=(const syncBFTmessage& rhs){
@@ -77,6 +78,7 @@ struct syncBFTmessage {
 		dagBlockFlag = rhs.dagBlockFlag;
 		faulty = rhs.faulty;
 		ccHash = rhs.ccHash;
+        submissionRound = rhs.submissionRound;
 		return *this;
 	}
 

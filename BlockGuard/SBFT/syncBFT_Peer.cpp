@@ -206,6 +206,7 @@ void syncBFT_Peer::propose(){
 
 	bool prevAcceptedValue = false;
 	syncBFTmessage proposalMessage;
+    proposalMessage.submissionRound = submissionRound;
 
 	for(auto &n: P.notify){
 		assert(n.size() == 3);
@@ -225,6 +226,7 @@ void syncBFT_Peer::propose(){
 
 	proposalMessage.peerId = _id;
 	proposalMessage.type = "PROPOSE";
+	proposalMessage.submissionRound = submissionRound;
 	proposalMessage.iter = std::to_string(iter);
 	proposalMessage.P.clear();
 
@@ -243,6 +245,7 @@ void syncBFT_Peer::propose(){
 		proposalMessage.message = {std::to_string(iter), "PROPOSE", consensusTx};
 		proposalMessage.P = P;
 		proposalMessage.value = consensusTx;
+        proposalMessage.submissionRound = submissionRound;
 		valueFromLeader = consensusTx;
 
 	}else{
@@ -274,11 +277,12 @@ void syncBFT_Peer::propose(){
 		}
 
 		proposalMessage.message = {std::to_string(iter), "PROPOSE", highIterVal};
+        proposalMessage.submissionRound = submissionRound;
 		proposalMessage.P = P;
 		proposalMessage.value = highIterVal;
 
 	}
-
+    proposalMessage.submissionRound = submissionRound;
 	populateOutStream(proposalMessage);
 	setSyncBFTState(2);
 }
@@ -349,6 +353,7 @@ void syncBFT_Peer::commit(){
 		Logger::instance()->log("The proposal from the leader is valid.\n");
 		valueFromLeader = (_inStream[0].getMessage().value);
 		messageToForward = (_inStream[0].getMessage());
+		submissionRound = _inStream[0].getMessage().submissionRound;
 	} else{
 		Logger::instance()->log("The proposal from the leader is not valid: NOTHING TO DO.\n");
 		valueFromLeader = ("_");
@@ -407,7 +412,6 @@ void syncBFT_Peer::notify(){
 	for (auto const& pair : valueToCommitCount)
 	{
 		if (pair.second >= (committeeSize - 1)/2 +1){
-			committed = true;
 			committed = true;
 		}
 	}
@@ -641,6 +645,7 @@ void syncBFT_Peer::receiveTx() {
 		consensusTx = _inStream[0].getMessage().message[0];
         submissionRound = _inStream[0].getMessage().submissionRound;
         assert(submissionRound != -1);
+        std::cout<< std::endl<< "INFO: submissionRound "<< submissionRound << std::endl;
 	}
 	else{
 		assert(!consensusTx.empty());
