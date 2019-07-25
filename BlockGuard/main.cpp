@@ -35,6 +35,7 @@
 // UTIL
 #include "./Common/Logger.hpp"
 #include "./Common/Blockchain.hpp"
+#include "./Common/hash.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
