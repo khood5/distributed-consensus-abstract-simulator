@@ -46,8 +46,8 @@ run:
 	tmux new-session -d -s "4" ./BlockGuard.out sbft_s ./../results4/
 	tmux new-session -d -s "5" ./BlockGuard.out pow_s ./../results5/
 	tmux new-session -d -s "6" ./BlockGuard.out pow_s ./../results6/
-    tmux new-session -d -s "7" ./BlockGuard.out tx ./../results7/
-    tmux new-session -d -s "8" ./BlockGuard.out tx ./../results8/
+	tmux new-session -d -s "7" ./BlockGuard.out tx ./../results7/
+	tmux new-session -d -s "8" ./BlockGuard.out tx ./../results8/
 
 run_sbft:
 	tmux new-session -d -s "1" ./BlockGuard.out sbft_s ./../results1/
