@@ -641,7 +641,6 @@ void syncBFT_Peer::receiveTx() {
 	if(consensusTx.empty()){
 		consensusTx = _inStream[0].getMessage().message[0];
         assert(submissionRound != -1);
-        std::cout<< std::endl<< "INFO: submissionRound "<< submissionRound << std::endl;
 	}
 	else{
 		assert(!consensusTx.empty());

@@ -50,11 +50,6 @@ void syncBFT_Committee::receiveTx(){
 int syncBFT_Committee::incrementSyncBFTsystemState() {
     if(syncBFTsystemState == 3) {
         changeLeader = true;
-        std::cout<< "---------------------------------------"<< std::endl;
-        std::cout<< std::endl;
-        std::cout<< "INFO: changeLeader"<< std::endl;
-        std::cout<< std::endl;
-        std::cout<< "---------------------------------------"<< std::endl;
         syncBFTsystemState=0;
     }
     else

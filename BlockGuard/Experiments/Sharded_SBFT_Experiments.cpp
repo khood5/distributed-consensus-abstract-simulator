@@ -188,7 +188,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
     int delay = 0;
     std::string header = "Round, Confirmed/Submitted, Average Waiting Time,  delay";
     csv<< header<< std::endl;
-    
+
     // delay 1
     delay = 1;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -215,11 +215,11 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            
+
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
                 csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
                 prvConfirmed = system.getGlobalLedger().size();
                 prvSub = totalSub;
@@ -227,7 +227,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
         csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
     }// end loop runs
     
@@ -261,7 +261,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
                 csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
                 prvConfirmed = system.getGlobalLedger().size();
                 prvSub = totalSub;
@@ -269,7 +269,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
         csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
     }// end loop runs
     
@@ -303,7 +303,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
                 csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
                 prvConfirmed = system.getGlobalLedger().size();
                 prvSub = totalSub;
@@ -311,7 +311,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
         csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
     }// end loop runs
     
@@ -345,7 +345,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
                 csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
                 prvConfirmed = system.getGlobalLedger().size();
                 prvSub = totalSub;
@@ -353,7 +353,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
         csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<delay<< std::endl;
     }// end loop runs
 }
@@ -363,9 +363,6 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
 //
 void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log){
     double byzantine = 0.0;
-    std::string header = "Round, Confirmed/Submitted, Byzantine";
-    csv<< header<< std::endl;
-
     // byzantine 1/10
     byzantine = 0.09;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -376,12 +373,14 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
         system.makeByzantines(PEER_COUNT*byzantine);
-        
+
         int totalSub = 0;
         int prvConfirmed = 0;
         int prvSub = 0;
+        std::string header = "Round,Waiting Time, Confirmed/Submitted, totalDef, totalHonest, Ratio,  Byzantine";
+        csv<< header<< std::endl;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(PEER_COUNT*byzantine);
+            system.shuffleByzantines(NUMBER_OF_BYZ);
             if(i%2){
                 system.makeRequest();
                 totalSub++;
@@ -392,20 +391,24 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            
+
             if(i%100 == 0){
-                double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
+                double last100RoundCon = (system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
-                csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
-                prvConfirmed = system.getGlobalLedger().size();
+                double totalDef = defeatedTrnasactions(system.getGlobalLedger());
+                double totalHonest = system.getGlobalLedger().size() - totalDef;
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
+                csv<< i<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
+                prvConfirmed = (system.getGlobalLedger()).size();
                 prvSub = totalSub;
             }
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
-        csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
+        double totalDef = defeatedTrnasactions((system.getGlobalLedger()));
+        double totalHonest = system.getGlobalLedger().size() - totalDef;
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
     }// end loop runs
 
     // byzantine 1/5
@@ -423,7 +426,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvConfirmed = 0;
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(PEER_COUNT*byzantine);
+            system.shuffleByzantines(NUMBER_OF_BYZ);
             if(i%2){
                 system.makeRequest();
                 totalSub++;
@@ -434,20 +437,24 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            
+
             if(i%100 == 0){
-                double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
+                double last100RoundCon = (system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
-                csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
-                prvConfirmed = system.getGlobalLedger().size();
+                double totalDef = defeatedTrnasactions(system.getGlobalLedger());
+                double totalHonest = system.getGlobalLedger().size() - totalDef;
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
+                csv<< i<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
+                prvConfirmed = (system.getGlobalLedger()).size();
                 prvSub = totalSub;
             }
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
-        csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
+        double totalDef = defeatedTrnasactions((system.getGlobalLedger()));
+        double totalHonest = system.getGlobalLedger().size() - totalDef;
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
     }// end loop runs
 
     // delay 1/3
@@ -465,7 +472,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvConfirmed = 0;
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(PEER_COUNT*byzantine);
+            system.shuffleByzantines(NUMBER_OF_BYZ);
             if(i%2){
                 system.makeRequest();
                 totalSub++;
@@ -476,20 +483,24 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            
+
             if(i%100 == 0){
-                double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
+                double last100RoundCon = (system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
-                csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
-                prvConfirmed = system.getGlobalLedger().size();
+                double totalDef = defeatedTrnasactions(system.getGlobalLedger());
+                double totalHonest = system.getGlobalLedger().size() - totalDef;
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
+                csv<< i<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
+                prvConfirmed = (system.getGlobalLedger()).size();
                 prvSub = totalSub;
             }
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
-        csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
+        double totalDef = defeatedTrnasactions((system.getGlobalLedger()));
+        double totalHonest = system.getGlobalLedger().size() - totalDef;
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
     }// end loop runs
 
     // byzantine 1/2
@@ -507,7 +518,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvConfirmed = 0;
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(PEER_COUNT*byzantine);
+            system.shuffleByzantines(NUMBER_OF_BYZ);
             if(i%2){
                 system.makeRequest();
                 totalSub++;
@@ -518,19 +529,23 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            
+
             if(i%100 == 0){
-                double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
+                double last100RoundCon = (system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
-                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-100);
-                csv<< i<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
-                prvConfirmed = system.getGlobalLedger().size();
+                double totalDef = defeatedTrnasactions(system.getGlobalLedger());
+                double totalHonest = system.getGlobalLedger().size() - totalDef;
+                double waitingTime = waitTimeRolling(system.getGlobalLedger(),i-WINDOW_SIZE);
+                csv<< i<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
+                prvConfirmed = (system.getGlobalLedger()).size();
                 prvSub = totalSub;
             }
         }
         double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
         double last100RoundSub = totalSub - prvSub;
-        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-100);
-        csv<< NUMBER_OF_ROUNDS<< ","<< last100RoundCon / last100RoundSub<< ","<< waitingTime<< ","<<byzantine<< std::endl;
+        double totalDef = defeatedTrnasactions((system.getGlobalLedger()));
+        double totalHonest = system.getGlobalLedger().size() - totalDef;
+        double waitingTime = waitTimeRolling(system.getGlobalLedger(),NUMBER_OF_ROUNDS-WINDOW_SIZE);
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitingTime<< ","<<last100RoundCon / last100RoundSub<< ","<< totalDef<< ","<< totalHonest<< ","<< totalDef/system.getGlobalLedger().size()<< ","<<byzantine<< std::endl;
     }// end loop runs
 }
