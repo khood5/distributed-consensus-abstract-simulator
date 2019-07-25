@@ -18,11 +18,11 @@ build: preBuild
 	clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
 
 preBuild:
-	clang++ -std=c++14 ./BlockGuard/Common/*.cpp -c -lssl -lcrypto
-	clang++ -std=c++14 ./BlockGuard/PBFT/*.cpp -c -lssl -lcrypto
-	clang++ -std=c++14 ./BlockGuard/SBFT/*.cpp -c -lssl -lcrypto
-	clang++ -std=c++14 ./BlockGuard/bCoin/*.cpp -c -lssl -lcrypto
-	clang++ -std=c++14 ./BlockGuard/Experiments/*.cpp -c -lssl -lcrypto
+	clang++ -std=c++14 ./BlockGuard/Common/*.cpp -c
+	clang++ -std=c++14 ./BlockGuard/PBFT/*.cpp -c
+	clang++ -std=c++14 ./BlockGuard/SBFT/*.cpp -c
+	clang++ -std=c++14 ./BlockGuard/bCoin/*.cpp -c
+	clang++ -std=c++14 ./BlockGuard/Experiments/*.cpp -c
 
 test: PBFT_Peer PBFTPeer_Sharded PBFTReferenceCommittee ExamplePeer
 	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -o ./BlockGuard_Test.out
