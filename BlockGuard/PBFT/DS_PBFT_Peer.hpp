@@ -377,8 +377,8 @@ void DS_PBFT_Peer::createBlock(){
 	for (auto const& s : hashesToConnectTo) { newBlockString += "_" + s;}
 	int seqNumber = _ledger.back().sequenceNumber;
 	newBlockString += "_" + std::to_string(seqNumber);
-//	string newBlockHash = sha256(newBlockString);
-	string newBlockHash = std::to_string(dag.getSize());
+	string newBlockHash = sha256(newBlockString);
+//	string newBlockHash = std::to_string(dag.getSize());
 
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, std::to_string(seqNumber), _byzantine));
 }
