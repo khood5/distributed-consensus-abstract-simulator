@@ -22,6 +22,12 @@
 // SBFT
 #include "./SBFT/syncBFT_Peer.hpp"
 #include "./SBFT/syncBFT_Committee.hpp"
+// PBFT
+#include "./PBFT/PBFT_Peer.hpp"
+#include "./PBFT/PBFTPeer_Sharded.hpp"
+#include "./PBFT/DS_PBFT_Peer.hpp"
+#include "./PBFT/DS_PBFT.hpp"
+#include "./PBFT/PBFT_Committee.hpp"
 // POW
 #include "./bCoin/bCoin_Peer.hpp"
 #include "./bCoin/bCoin_Committee.hpp"
