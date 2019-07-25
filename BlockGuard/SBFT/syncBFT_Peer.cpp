@@ -6,8 +6,6 @@
 #include <cassert>
 #include <utility>
 #include "./../Common/Logger.hpp"
-#include "../Common/hash.hpp"
-
 
 syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
 	P.clear();
