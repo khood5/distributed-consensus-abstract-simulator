@@ -12,7 +12,7 @@
 
 #include "./../Common/Peer.hpp"
 #include "./../Common/DAG.hpp"
-#include "./../Common/hash.hpp"
+#include <openssl/sha.h>
 
 struct proposal{
 	std::vector<vector<string>> 					status;
@@ -186,7 +186,7 @@ public:
 	void                                    		sendBlock									();
 	void											updateDAG									();
 	void 											receiveTx									();
-
+    std::string                                     sha256                                      (const std::string& str);
 };
 
 
