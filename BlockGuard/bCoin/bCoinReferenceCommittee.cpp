@@ -228,7 +228,14 @@ void bCoinReferenceCommittee::cleanupCommittee(){
     // clear old committees that have terminated and release peers from them
     auto committee = _currentCommittees.begin();
     while(committee != _currentCommittees.end()){
-        if(committee->checkForConsensus() == true){
+        bool consensus = true;
+        for(int i = 0; i < committee->size(); i++){
+            if(!committee->get(i)->isTerminated() || committee->get(i)->isBusy()){
+                consensus = false;
+                break;
+            }
+        }
+        if(consensus){
             for(int i = 0; i < committee->size(); i++){
                 committee->get(i)->updateDAG();
             }

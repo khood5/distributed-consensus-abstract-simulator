@@ -172,6 +172,7 @@ void SBFTReferenceCommittee::makeRequest(int secLevel){
         newCommittee.initiate(request.submissionRound);
         for(int i = 0; i < newCommittee.size(); i++){
             newCommittee[i]->setTerminated(false);
+            newCommittee[i]->setCommitteeSize(newCommittee.size());
         }
         _activeCommittees.push_back(SBFTState(WAITING_FOR_TX,newCommittee));
         request = _requestQueue.front();

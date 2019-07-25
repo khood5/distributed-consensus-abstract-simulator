@@ -86,21 +86,21 @@ void SBFT_refCom(std::string filePath){
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "pow_s.log" << std::endl;
     }
-    
+
     csv.open(filePath + "SBFTCommitteeSizeVsSecurityAndThoughput.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTCommitteeSizeVsSecurityAndThoughput.csv" << std::endl;
     }
     SBFTCommitteeSizeVsSecurityAndThoughput(csv,log);
     csv.close();
-    
+
     csv.open(filePath + "SBFTWaitingTimeThroughputVsDelay.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTWaitingTimeThroughputVsDelay.csv" << std::endl;
     }
     SBFTWaitingTimeThroughputVsDelay(csv,log);
     csv.close();
-    
+
     csv.open(filePath + "SBFTWaitingTimeThroughputVsByzantine.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTWaitingTimeThroughputVsByzantine.csv" << std::endl;

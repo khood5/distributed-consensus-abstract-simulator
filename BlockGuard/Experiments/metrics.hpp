@@ -23,5 +23,6 @@ int     totalNumberOfCorrectCommittees  (std::vector<DAGBlock> globalLedger, dou
 int     getRollingAvgWaitTime           (std::vector<DAGBlock> globalLedger, int secLevel, int rounds);
 int     rollingDefeatedCommittees       (std::vector<DAGBlock> globalLedger, double secLvl, int from);
 int     rollingDefeatedTrnasactions     (std::vector<DAGBlock> globalLedger, int from);
+int     totalNumberOfHonestCommittees   (std::vector<DAGBlock> globalLedger);
 
 #endif /* metrics_hpp */

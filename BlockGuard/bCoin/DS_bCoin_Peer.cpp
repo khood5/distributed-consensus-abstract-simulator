@@ -151,6 +151,12 @@ void DS_bCoin_Peer::updateDAG() {
 	if(minedBlock!= nullptr){
         minedBlock->setSecruityLevel(committeeNeighbours.size()+1);
         minedBlock->setConfirmedRound(_clock);
+        int totalByz = 0;
+//        for(auto peer = committeeNeighbours.begin(); peer != committeeNeighbours.end(); peer++){
+//            if(peer->second->isByzantine()){
+//                assert(false);
+//            }
+//        }
 		dag.addVertex(*minedBlock, minedBlock->getPreviousHashes());
 		delete minedBlock;
 		minedBlock = nullptr;

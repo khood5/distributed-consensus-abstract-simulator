@@ -9,6 +9,16 @@
 #include "metrics.hpp"
 #include <cassert>
 
+int totalNumberOfHonestCommittees(std::vector<DAGBlock> globalLedger){
+    int total = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(!entry->isByzantine()){
+            total++;
+        }
+    }
+    return total;
+}
+
 double ratioOfSecLvl(std::vector<DAGBlock> globalLedger, double secLvl){
     double total = globalLedger.size();
     double defeated = 0;

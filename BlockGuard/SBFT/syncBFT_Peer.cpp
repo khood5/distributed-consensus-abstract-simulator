@@ -373,6 +373,15 @@ void syncBFT_Peer::commit(){
 
 	}
 	if(messageToForward.faulty){
+
+	    double totalByz = 0;
+	    for(auto peer = committeeNeighbours.begin(); peer != committeeNeighbours.end(); peer++){
+            if(peer->second->isByzantine()){
+                totalByz++;
+            }
+	    }
+        double byzOverHonest = totalByz/(committeeNeighbours.size() + 1);
+	    std::cout<< std::endl<< "INFO: faultyBlock with "<< byzOverHonest << "% byz"<< std::endl;
 		faultyBlock = true;
 	}
 	setSyncBFTState(3);

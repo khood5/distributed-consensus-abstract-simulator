@@ -46,12 +46,6 @@ bool bCoin_Committee::checkForConsensus(){
             consensusFlag = false;
         }
     }
-    
-    if(consensusFlag){
-//        std::cerr<<"CONSENSUS REACHED FOR TX "<<tx<<std::endl;
-    }else{
-//        std::cerr<<"NO CONSENSUS FOR TX "<<tx<<std::endl;
-    }
     return consensusFlag;
 }
 
