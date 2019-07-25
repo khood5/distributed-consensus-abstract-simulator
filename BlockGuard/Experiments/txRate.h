@@ -2,8 +2,8 @@
 // Created by khood on 7/22/19.
 //
 
-#ifndef DISTRIBUTED_CONSENSUS_ABSTRACT_SIMULATOR_TXRATE_H
-#define DISTRIBUTED_CONSENSUS_ABSTRACT_SIMULATOR_TXRATE_H
+#ifndef txRate_h
+#define txRate_h
 
 #include <iostream>
 #include "../params.hpp"
@@ -16,4 +16,4 @@
 
 void txRate(std::ofstream &csv, std::ofstream &log);
 
-#endif //DISTRIBUTED_CONSENSUS_ABSTRACT_SIMULATOR_TXRATE_H
+#endif //txRate.h
