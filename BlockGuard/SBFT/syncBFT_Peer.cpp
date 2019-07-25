@@ -458,7 +458,7 @@ void syncBFT_Peer::notify(){
         std::string ccString = ss.str();
 
 //        std::string ccHash = sha256(ccString);
-//        std::string ccHash = "SAMPLE";
+        std::string ccHash = "SAMPLE";
 
         bcMessage.ccHash = ccHash;
 
