@@ -103,8 +103,8 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 	newBlockString += "_" + consensusTx;
 
 //	use this for proper hashing
-	string newBlockHash = sha256(newBlockString);
-//	string newBlockHash = std::to_string(dag.getSize());
+//	string newBlockHash = sha256(newBlockString);
+	string newBlockHash = std::to_string(dag.getSize());
 
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, faultyBlock));
 	minedBlock->setConfirmedRound(_clock);
@@ -457,7 +457,7 @@ void syncBFT_Peer::notify(){
         }
         std::string ccString = ss.str();
 
-        std::string ccHash = sha256(ccString);
+//        std::string ccHash = sha256(ccString);
 //        std::string ccHash = "SAMPLE";
 
         bcMessage.ccHash = ccHash;
