@@ -16,7 +16,7 @@ static const int GROUP_SIZE = 32;   // Fixed only 32
 static const double FAULT = 0.6;
 static const int NUMBER_OF_BYZ =  PEER_COUNT * 0.1; // 1/3
 static const int NUMBER_OF_ROUNDS = 1000;
-static const int NUMBER_OF_RUNS = 5;
+static const int NUMBER_OF_RUNS = 3;
 static const int WINDOW_SIZE = 200;
 
 #endif /* params_hpp */
