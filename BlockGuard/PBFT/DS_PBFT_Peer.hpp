@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "PBFT_Peer.hpp"
-//#include "../Common/hash.hpp"
+#include "../Common/hash.hpp"
 #include "../Common/DAG.hpp"
 #include "../Common/Logger.hpp"
 class DS_PBFT_Peer : public PBFT_Peer{

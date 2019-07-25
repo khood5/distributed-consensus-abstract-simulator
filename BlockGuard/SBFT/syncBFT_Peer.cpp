@@ -6,7 +6,7 @@
 #include <cassert>
 #include <utility>
 #include "./../Common/Logger.hpp"
-#include "hash.hpp"
+#include "../Common/hash.hpp"
 
 
 syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
