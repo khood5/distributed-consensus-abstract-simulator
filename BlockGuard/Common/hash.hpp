@@ -2,8 +2,8 @@
 // Created by srai on 4/17/19.
 //
 
-#ifndef Hash_hpp
-#define Hash_hpp
+#ifndef hash_hpp
+#define hash_hpp
 
 
 #include <openssl/sha.h>
