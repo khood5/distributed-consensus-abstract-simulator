@@ -300,7 +300,7 @@ peer_type* Network<type_msg,peer_type>::getPeerById(std::string id){
 	return nullptr;
 }
 
-std::string sha256(const std::string& str);
+//std::string sha256(const std::string& str);
 
 template<class type_msg, class peer_type>
 void Network<type_msg,peer_type>::buildInitialDAG() {
