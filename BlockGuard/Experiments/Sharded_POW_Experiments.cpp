@@ -186,7 +186,7 @@ void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
     std::string header = "Round, Confirmed/Submitted, Average Waiting Time,  delay";
     csv<< header<< std::endl;
 
-    delay = 10;
+    delay = 1;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         bCoinReferenceCommittee system = bCoinReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);

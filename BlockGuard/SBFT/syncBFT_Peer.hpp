@@ -12,7 +12,6 @@
 
 #include "./../Common/Peer.hpp"
 #include "./../Common/DAG.hpp"
-#include "../Common/hash.hpp"
 
 struct proposal{
 	std::vector<vector<string>> 					status;
