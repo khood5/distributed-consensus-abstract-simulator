@@ -504,6 +504,7 @@ void syncBFT(const char ** argv){
 				collectInterval = 2 * n.maxDelay();
 			}
 		}else if(status == COLLECTING){
+			waitTime = 2*n.maxDelay();
 			//	make sure no peer is busy
 			for(int a = 0; a< n.size();a++){
 				assert(n[a]->isTerminated());
