@@ -35,6 +35,7 @@
 // UTIL
 #include "./Common/Logger.hpp"
 #include "./Common/Blockchain.hpp"
+#include "./Experiments/PBFTRatioFixedCommitteeSize.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
@@ -84,6 +85,8 @@ int main(int argc, const char * argv[]) {
         POW_refCom(filePath);
     }else if(algorithm == "sbft_s"){
         SBFT_refCom(filePath);
+    }else if(algorithm == "fixed"){
+        PBFTRatioFixedCommitteeSize(filePath);
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
