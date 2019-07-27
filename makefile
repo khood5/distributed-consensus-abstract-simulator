@@ -49,15 +49,24 @@ run:
 	tmux new-session -d -s "7" ./BlockGuard.out tx ./../results7/
 	tmux new-session -d -s "8" ./BlockGuard.out tx ./../results8/
 
-run_sbft:
-	tmux new-session -d -s "1" ./BlockGuard.out sbft_s ./../results1/
-	tmux new-session -d -s "2" ./BlockGuard.out sbft_s ./../results2/
-	tmux new-session -d -s "3" ./BlockGuard.out sbft_s ./../results3/
-	tmux new-session -d -s "4" ./BlockGuard.out sbft_s ./../results4/
-	tmux new-session -d -s "5" ./BlockGuard.out sbft_s ./../results5/
-	tmux new-session -d -s "6" ./BlockGuard.out sbft_s ./../results6/
-	tmux new-session -d -s "7" ./BlockGuard.out sbft_s ./../results7/
-	tmux new-session -d -s "8" ./BlockGuard.out sbft_s ./../results8/
+run_ratio:
+    mkdir ./../fixed1/
+    mkdir ./../fixed2/
+    mkdir ./../fixed3/
+    mkdir ./../fixed4/
+    mkdir ./../fixed5/
+    mkdir ./../fixed6/
+    mkdir ./../fixed7/
+    mkdir ./../fixed8/
+
+	tmux new-session -d -s "f1" ./BlockGuard.out fixed ./../fixed1/
+	tmux new-session -d -s "f2" ./BlockGuard.out fixed ./../fixed2/
+	tmux new-session -d -s "f3" ./BlockGuard.out fixed ./../fixed3/
+	tmux new-session -d -s "f4" ./BlockGuard.out fixed ./../fixed4/
+	tmux new-session -d -s "f5" ./BlockGuard.out fixed ./../fixed5/
+	tmux new-session -d -s "f6" ./BlockGuard.out fixed ./../fixed6/
+	tmux new-session -d -s "f7" ./BlockGuard.out fixed ./../fixed7/
+	tmux new-session -d -s "f8" ./BlockGuard.out fixed ./../fixed8/
 
 clean_results:
 	rm ./../results1/*
