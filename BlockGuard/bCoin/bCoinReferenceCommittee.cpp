@@ -155,10 +155,16 @@ void bCoinReferenceCommittee::makeRequest(int secLevel){
         }
         
         // add new committee to list
+        double min = 1000000;
         bCoin_Committee committee = bCoin_Committee(peersForCommittee,peersForCommittee[0], std::to_string(req.submissionRound), req.securityLevel);
         for(int i = 0; i<committee.size(); i++){
             committee[i]->resetMiningClock();
+            if( min > committee[i]->getMineNextAt()){
+                min = committee[i]->getMineNextAt();
+            }
         }
+        
+        std::cout<< std::endl<< "INFO: min "<<min <<std::endl;
         
         
         if(committee.getByzantineRatio() > 0.5){

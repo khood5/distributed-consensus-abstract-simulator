@@ -9,6 +9,9 @@
 #include <deque>
 #include "./../Common/Peer.hpp"
 #include "./../Common/DAG.hpp"
+#include <openssl/sha.h>
+
+static int minedBlockCount = 0;
 
 struct DS_bCoinMessage {
 	std::string 							peerId ;
@@ -53,7 +56,6 @@ struct DS_bCoinMessage {
 
 
 class DS_bCoin_Peer : public Peer<DS_bCoinMessage> {
-
 	int 											counter;
 	int                                             mineNextAt;
     int                                             startedMiningAt;
@@ -70,7 +72,7 @@ public:
 	std::vector<DAGBlock>							dagBlocks={};
 	DAGBlock										*minedBlock;
 	void											updateDAG();
-
+    std::string                                     sha256(const std::string& str);
 	explicit DS_bCoin_Peer																	(std::string);
 	DS_bCoin_Peer                                                                      		(const DS_bCoin_Peer &rhs);
 	~DS_bCoin_Peer                                                                     		() override                                                 { delete minedBlock; }

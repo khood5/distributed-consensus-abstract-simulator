@@ -32,14 +32,16 @@ DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(
 
 bool DS_bCoin_Peer::mineBlock() {
 	if(mineNextAt == 0){
-
+        minedBlockCount++;
 		std::vector<string> hashesToConnectTo=dag.getTips();
 		std::string newBlockString;
 		for (auto const& s : hashesToConnectTo) { newBlockString += "_"+s;}
 
 		newBlockString+= "_"+consensusTx;
-		string newBlockHash = std::to_string(dag.getSize());
-
+//        string newBlockHash = std::to_string(dag.getSize());
+        
+        string newBlockHash = sha256(newBlockString);
+        
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
         assert(submissionRound != -1);
         messageToSend.dagBlock.setSubmissionRound(submissionRound);
@@ -218,4 +220,19 @@ void DS_bCoin_Peer::clearConsensusTx(){
 //		std::cerr<<"THE TX HAS NOT BEEN RECEIVED YET"<<std::endl;
 	}
 	consensusTx.clear();
+}
+
+std::string DS_bCoin_Peer::sha256(const std::string& str){
+    unsigned char digest[SHA256_DIGEST_LENGTH];
+    
+    SHA256_CTX ctx;
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, str.c_str(), str.length());
+    SHA256_Final(digest, &ctx);
+    
+    std::stringstream hash;
+    for(unsigned char i : digest){
+        hash<< std::hex << std::setw(2) << std::setfill('0') << (int)i;
+    }
+    return hash.str();
 }
