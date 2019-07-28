@@ -15,7 +15,7 @@ build: preBuild
 	#clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
     #for MacOS and ssl installed via homebrew
     #clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lm /usr/local/opt/openssl/lib/libssl.dylib /usr/local/opt/openssl/lib/libcrypto.dylib
-	clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
+    clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
 
 preBuild:
 	clang++ -std=c++14 ./BlockGuard/Common/*.cpp -c
@@ -50,14 +50,14 @@ run:
 	tmux new-session -d -s "8" ./BlockGuard.out tx ./../results8/
 
 run_ratio:
-    mkdir ./../fixed1/
-    mkdir ./../fixed2/
-    mkdir ./../fixed3/
-    mkdir ./../fixed4/
-    mkdir ./../fixed5/
-    mkdir ./../fixed6/
-    mkdir ./../fixed7/
-    mkdir ./../fixed8/
+	mkdir ./../fixed1/
+	mkdir ./../fixed2/
+	mkdir ./../fixed3/
+	mkdir ./../fixed4/
+	mkdir ./../fixed5/
+	mkdir ./../fixed6/
+	mkdir ./../fixed7/
+	mkdir ./../fixed8/
 
 	tmux new-session -d -s "f1" ./BlockGuard.out fixed ./../fixed1/
 	tmux new-session -d -s "f2" ./BlockGuard.out fixed ./../fixed2/
