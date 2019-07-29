@@ -27,7 +27,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
     
     // sec lvl 1
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        for(double byz = 0.1; byz < 0.51; byz += 0.5){
+        for(double byz = 0.1; byz < 0.51; byz += 0.05){
             PBFTReferenceCommittee system = PBFTReferenceCommittee();
             system.setGroupSize(GROUP_SIZE);
             system.setToRandom();
@@ -64,7 +64,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
     
     // sec lvl 2
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        for(double byz = 0.1; byz < 0.51; byz += 0.5){
+        for(double byz = 0.1; byz < 0.51; byz += 0.05){
             PBFTReferenceCommittee system = PBFTReferenceCommittee();
             system.setGroupSize(GROUP_SIZE);
             system.setToRandom();
@@ -101,7 +101,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
     
     // sec lvl 3
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        for(double byz = 0.1; byz < 0.51; byz += 0.5){
+        for(double byz = 0.1; byz < 0.51; byz += 0.05){
             PBFTReferenceCommittee system = PBFTReferenceCommittee();
             system.setGroupSize(GROUP_SIZE);
             system.setToRandom();
@@ -138,7 +138,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
     
     // sec lvl 4
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        for(double byz = 0.1; byz < 0.51; byz += 0.5){
+        for(double byz = 0.1; byz < 0.51; byz += 0.05){
             PBFTReferenceCommittee system = PBFTReferenceCommittee();
             system.setGroupSize(GROUP_SIZE);
             system.setToRandom();
@@ -175,7 +175,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
     
     // sec lvl 5
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        for(double byz = 0.1; byz < 0.51; byz += 0.5){
+        for(double byz = 0.1; byz < 0.51; byz += 0.05){
             PBFTReferenceCommittee system = PBFTReferenceCommittee();
             system.setGroupSize(GROUP_SIZE);
             system.setToRandom();
