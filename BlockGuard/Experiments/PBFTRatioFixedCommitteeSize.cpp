@@ -55,7 +55,7 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
                 
             }
             double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
-            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
+            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
             double ratioOfDefToHonest = totalDef / totalHonest;
             double waitingTime = waitTime(PBFTLedgerToDag(system.getGlobalLedger()));
             csv<< byz<< ","<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<< ","<< waitingTime<<std::endl;
@@ -91,8 +91,8 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
                 std::cout<< 't'<< std::flush;
                 
             }
-            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
-            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
+            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
+            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
             double ratioOfDefToHonest = totalDef / totalHonest;
             double waitingTime = waitTime(PBFTLedgerToDag(system.getGlobalLedger()));
             csv<< byz<< ","<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<< ","<< waitingTime<<std::endl;
@@ -128,8 +128,8 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
                 std::cout<< 't'<< std::flush;
                 
             }
-            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
-            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
+            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
+            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
             double ratioOfDefToHonest = totalDef / totalHonest;
             double waitingTime = waitTime(PBFTLedgerToDag(system.getGlobalLedger()));
             csv<< byz<< ","<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<< ","<< waitingTime<<std::endl;
@@ -165,8 +165,8 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
                 std::cout<< 't'<< std::flush;
                 
             }
-            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
-            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
+            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
+            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
             double ratioOfDefToHonest = totalDef / totalHonest;
             double waitingTime = waitTime(PBFTLedgerToDag(system.getGlobalLedger()));
             csv<< byz<< ","<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<< ","<< waitingTime<<std::endl;
@@ -202,8 +202,8 @@ void PBFTRatioFixedCommitteeSize(std::string filePath){
                 std::cout<< 't'<< std::flush;
                 
             }
-            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
-            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
+            double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
+            double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel*GROUP_SIZE);
             double ratioOfDefToHonest = totalDef / totalHonest;
             double waitingTime = waitTime(PBFTLedgerToDag(system.getGlobalLedger()));
             csv<< byz<< ","<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<< ","<< waitingTime<<std::endl;
