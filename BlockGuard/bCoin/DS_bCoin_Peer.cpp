@@ -150,7 +150,10 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 
 void DS_bCoin_Peer::updateDAG() {
 	//	process self mined block
+	int tempSize = dag.getSize();
+	bool blockAdded = false;
 	if(minedBlock!= nullptr){
+		blockAdded = true;
         minedBlock->setSecruityLevel(committeeNeighbours.size()+1);
         minedBlock->setConfirmedRound(_clock);
         int totalByz = 0;
@@ -165,6 +168,7 @@ void DS_bCoin_Peer::updateDAG() {
 	}
     
     if(!dagBlocks.empty()){
+		blockAdded = true;
         sort( dagBlocks.begin( ), dagBlocks.end( ), [ ]( const auto& lhs, const auto& rhs )
              {
                  return lhs.getData() < rhs.getData();
@@ -198,6 +202,10 @@ void DS_bCoin_Peer::updateDAG() {
 	dag.setTips();
 	dagBlocks.clear();
 	_inStream.clear();
+	if(blockAdded){
+//		This assertion fails without sha256 hashing because of blocks getting overwritten
+		assert(dag.getSize()>tempSize);
+	}
 }
 
 
