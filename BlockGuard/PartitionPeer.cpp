@@ -4,6 +4,7 @@
 int PartitionPeer::doubleDelay = 0;
 int PartitionPeer::NextblockIdNumber = 1;
 bool PartitionPeer::PostSplit = false;
+bool PartitionPeer::Lying = false;
 PartitionPeer::~PartitionPeer() {
 
 }
@@ -122,7 +123,9 @@ std::ostream& operator<< (std::ostream &out, const PartitionPeer &peer) {
 }
 
 bool PartitionPeer::mineBlock() {
-	if (rand() % (doubleDelay * (_neighbors.size() + 1) / 2) == 0) {
+	if (Lying) {
+		return false;
+	} else if (rand() % (doubleDelay * (_neighbors.size() + 1) / 2) == 0) {
 		return true;
 	}
 	else {

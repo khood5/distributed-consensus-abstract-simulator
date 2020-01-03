@@ -48,6 +48,7 @@ public:
 	static int  		  doubleDelay;
 	static int  		  NextblockIdNumber;
 	static bool			  PostSplit;
+	static bool			  Lying;
 	std::map<std::string, Peer<PartitionBlockMessage>*> PostSplitNeighbors;
 	static bool PartitionTransactionSortFunc(Partitiontransaction i, Partitiontransaction j) {
 		return (i.priority < j.priority);
