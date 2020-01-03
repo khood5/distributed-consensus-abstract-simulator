@@ -1257,6 +1257,9 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				system[j]->intialSplitSetup();
 			}
 		}
+		if (i == 200) {
+			PartitionPeer::Lying = false;
+		}
 
 		system.receive(); // do the receive phase of the round 
 		//system.log(); // log the system state
