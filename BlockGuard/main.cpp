@@ -1251,7 +1251,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
 		if (i == 100) {
-			PartitionPeer::PostSplit = true;
+			//PartitionPeer::PostSplit = true;
 			PartitionPeer::Lying = true;
 			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();
