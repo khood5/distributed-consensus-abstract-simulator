@@ -13,9 +13,9 @@ clean:
 
 build: preBuild
 	#clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
-    #for MacOS and ssl installed via homebrew
-    #clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lm /usr/local/opt/openssl/lib/libssl.dylib /usr/local/opt/openssl/lib/libcrypto.dylib
-    clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
+	#for MacOS and ssl installed via homebrew
+	#clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lm /usr/local/opt/openssl/lib/libssl.dylib /usr/local/opt/openssl/lib/libcrypto.dylib
+	clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
 
 preBuild:
 	clang++ -std=c++14 ./BlockGuard/Common/*.cpp -c
