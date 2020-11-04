@@ -123,11 +123,11 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		for (int delay = 1; delay < 11; ++delay) {
+		for (int delay = 3; delay < 4; ++delay) {
 			int rounds = 300;
 			std::vector<double> Throughput(rounds, 0);
 			std::string truePath = filePath + "Delay" + std::to_string(delay);
-			int experiments = 1000;
+			int experiments = 10;
 			for (int loop = 0; loop < experiments; ++loop) {
 				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
 				std::vector<double> T = partition(truePath, delay, rounds);
@@ -1224,7 +1224,9 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 	system.initNetwork(Peers);
 	PartitionPeer::doubleDelay = avgDelay * 2;
 	PartitionPeer::PostSplit = false;
+	bool Split = false; //used for counting throughput weird hack
 	PartitionPeer::NextblockIdNumber = 1;
+	PartitionPeer::DropRate = 10;
 	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
 		for (int k = 0; k < Peers / 2; k++) {
@@ -1251,14 +1253,19 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
 		if (i == 100) {
-			//PartitionPeer::PostSplit = true;
-			PartitionPeer::Lying = true;
+			PartitionPeer::PostSplit = true;
+			Split = true;
+			//PartitionPeer::Lying = true; // when lying blocks can't be mined
 			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();
 			}
 		}
 		if (i == 200) {
-			PartitionPeer::Lying = false;
+			PartitionPeer::PostSplit = false;
+			for (int j = 0; j < Peers; j++) {
+				system[j]->mergeWaiting =  avgDelay * 3;
+			}
+			//PartitionPeer::Lying = false;
 		}
 
 		system.receive(); // do the receive phase of the round 
@@ -1278,7 +1285,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 			if (peerBlockLength < preSplitThroughput) {
 				preSplitThroughput = peerBlockLength;
 			}
-			if (PartitionPeer::PostSplit && system[j]->postSplitTip > 0) {
+			if (Split && system[j]->postSplitTip > 0) {
 				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
 				if (j < Peers / 2) {
 					if (postSplitLength < partition1Throughput) {
@@ -1294,7 +1301,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 
 		}
 		int throughput = preSplitThroughput;
-		if (PartitionPeer::PostSplit) {
+		if (Split) {
 			throughput += partition1Throughput + partition2Throughput;
 		}
 		Throughput[i] = throughput;

@@ -5,6 +5,8 @@ int PartitionPeer::doubleDelay = 0;
 int PartitionPeer::NextblockIdNumber = 1;
 bool PartitionPeer::PostSplit = false;
 bool PartitionPeer::Lying = false;
+int PartitionPeer::DropRate = 0;
+
 PartitionPeer::~PartitionPeer() {
 
 }
@@ -19,55 +21,55 @@ PartitionPeer::PartitionPeer(std::string id) : Peer(id) {
 	blockChain.push_back(Genesis);
 }
 
+void PartitionPeer::incrementMergeWaiting() {
+	if (mergeWaiting > 0) {
+		mergeWaiting--;
+	}
+}
+
 void PartitionPeer::preformComputation() {
 	//std::cout << "Peer:" << _id << " preforming computation" << std::endl;
 	sortTransactions();
+	incrementDroppedBlocks();
+	linkUnlinkedBlocks(false);
 	int foundNew = checkInStrm();
+	findDroppedBlocks();
 	if (mineBlock()) {
 		
-		std::set<int> Trans = findVerifTrans();
+		std::set<int> transList = findVerifTrans();
 		PartitionBlock newBlock;
-
-		if (!PostSplit) {
-			for (int i = 0; i < transactions.size(); ++i) {
-				if (Trans.find(transactions[i].transBlock.trans) == Trans.end()) {
-					newBlock = transactions[i].transBlock;
-					newBlock.TipIndex = preSplitTip;
-					newBlock.tipBlockIdNumbers = blockChain[preSplitTip].blockIdNumber;
-					blockChain[preSplitTip].VerifIndex.push_back(blockChain.size());
-					newBlock.blockIdNumber = NextblockIdNumber;
-					newBlock.length = blockChain[preSplitTip].length + 1;
-					newBlock.postSplit = false;
-					NextblockIdNumber++;
-					preSplitTip = blockChain.size();
-					blockChain.push_back(newBlock);
-					sendBlock(newBlock);
-					break;
-				}
+		bool makeNew = false;
+		for (int i = 0; i < transactions.size(); ++i) {
+			if (transList.find(transactions[i].transBlock.trans) == transList.end()) {
+				newBlock = transactions[i].transBlock;
+				makeNew = true;
+				break;
 			}
 		}
-		else {
-			for (int i = 0; i < transactions.size(); ++i) {
-				if (Trans.find(transactions[i].transBlock.trans) == Trans.end()) {
-					newBlock = transactions[i].transBlock;
-					
-					newBlock.tipBlockIdNumbers = postSplitBlockChain[postSplitTip].blockIdNumber;
-					postSplitBlockChain[postSplitTip].VerifIndex.push_back(postSplitBlockChain.size());
-					newBlock.TipIndex = postSplitTip;
-					newBlock.length = postSplitBlockChain[postSplitTip].length + 1;
-					newBlock.blockIdNumber = NextblockIdNumber;
-					
-					newBlock.postSplit = true;
-					NextblockIdNumber++;
-					postSplitTip = postSplitBlockChain.size();
-					postSplitBlockChain.push_back(newBlock);
-					sendBlock(newBlock);
-					break;
-				}
+		if (makeNew) {
+			newBlock.blockIdNumber = NextblockIdNumber++;
+			if (!PostSplit) {
+				newBlock.TipIndex = preSplitTip;
+				newBlock.tipBlockIdNumbers = blockChain[preSplitTip].blockIdNumber;
+				blockChain[preSplitTip].VerifIndex.push_back(blockChain.size());
+				newBlock.length = blockChain[preSplitTip].length + 1;
+				newBlock.postSplit = false;
+				preSplitTip = blockChain.size();
+				blockChain.push_back(newBlock);
 			}
+			else {
+				newBlock.TipIndex = postSplitTip;
+				newBlock.tipBlockIdNumbers = postSplitBlockChain[postSplitTip].blockIdNumber;
+				postSplitBlockChain[postSplitTip].VerifIndex.push_back(postSplitBlockChain.size());
+				newBlock.length = postSplitBlockChain[postSplitTip].length + 1;
+				newBlock.postSplit = true;
+				postSplitTip = postSplitBlockChain.size();
+				postSplitBlockChain.push_back(newBlock);
+			}
+			sendBlock(newBlock);
 		}
 	}
-
+	incrementMergeWaiting();
 	//std::cout << std::endl;
 	counter++;
 }
@@ -123,7 +125,7 @@ std::ostream& operator<< (std::ostream &out, const PartitionPeer &peer) {
 }
 
 bool PartitionPeer::mineBlock() {
-	if (Lying) {
+	if (Lying || mergeWaiting > 0) {
 		return false;
 	} else if (rand() % (doubleDelay * (_neighbors.size() + 1) / 2) == 0) {
 		return true;
@@ -194,6 +196,37 @@ bool PartitionPeer::linkUnlinkedBlocks(bool foundLonger) {
 	return foundLonger;
 }
 
+void PartitionPeer::findDroppedBlocks() {
+	for (auto it = unlinkedBlocks.begin(); it != unlinkedBlocks.end(); it++) {
+		for (int j = 0; j < droppedBlocks.size(); ++j) {
+			if (it->tipBlockIdNumbers == droppedBlocks[j].block.blockIdNumber) {
+				if (droppedBlocks[j].delay == -1) {
+					droppedBlocks[j].delay = doubleDelay * 3 / 2;
+				}
+			}
+		}
+	}
+}
+
+void PartitionPeer::incrementDroppedBlocks() {
+	for (auto it = droppedBlocks.begin(); it != droppedBlocks.end(); it++) {
+		if (it->delay != -1) {
+			it->delay--;
+		}
+	}
+
+	auto it = droppedBlocks.begin();
+	while (it != droppedBlocks.end()) {
+		if (it->delay == 0) {
+			unlinkedBlocks.push_back(it->block);
+			it = droppedBlocks.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+}
+
 bool PartitionPeer::checkInStrm() {
 	bool foundNew = false;
 	bool foundLonger = false;
@@ -202,62 +235,68 @@ bool PartitionPeer::checkInStrm() {
 		// Check if it is a mined block or a transaction
 		if (_inStream[i].getMessage().mined) {
 			PartitionBlock newBlock = _inStream[i].getMessage().block;
-			// Go through all the tips
-			// Check to see if the tip exists in your blockchain and where it is
-			bool found = false;
-			if (!newBlock.postSplit) {
-				for (int j = 0; j < blockChain.size(); ++j) {
-					if (newBlock.tipBlockIdNumbers == blockChain[j].blockIdNumber) {
-						int TipIndex = j;
-						newBlock.TipIndex = TipIndex;
-						blockChain[TipIndex].VerifIndex.push_back(blockChain.size());
-						blockChain.push_back(newBlock);
-						if (newBlock.length > blockChain[preSplitTip].length) {
-							preSplitTip = blockChain.size() - 1;
-							if (PostSplit) {
+			if (DropRate != 0 && rand() % DropRate == 0) { // check to see if we are losing the block
+				DroppedBlock dropped;
+				dropped.block = _inStream[i].getMessage().block;
+				droppedBlocks.push_back(dropped);
+			}
+			else {
+				// Go through all the tips
+				// Check to see if the tip exists in your blockchain and where it is
+				bool found = false;
+				if (!newBlock.postSplit) {
+					for (int j = 0; j < blockChain.size(); ++j) {
+						if (newBlock.tipBlockIdNumbers == blockChain[j].blockIdNumber) {
+							int TipIndex = j;
+							newBlock.TipIndex = TipIndex;
+							blockChain[TipIndex].VerifIndex.push_back(blockChain.size());
+							blockChain.push_back(newBlock);
+							if (newBlock.length > blockChain[preSplitTip].length) {
+								preSplitTip = blockChain.size() - 1;
+								if (PostSplit) {
+									postSplitBlockChain.clear();
+									postSplitBlockChain.push_back(blockChain[preSplitTip]);
+									postSplitBlockChain[0].length = 0;
+									postSplitTip = 0;
+								}
+								foundLonger = true;
+							}
+							else if (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber && PostSplit) {
+								preSplitTip = blockChain.size() - 1;
 								postSplitBlockChain.clear();
 								postSplitBlockChain.push_back(blockChain[preSplitTip]);
 								postSplitBlockChain[0].length = 0;
 								postSplitTip = 0;
+								foundLonger = true;
 							}
-							foundLonger = true;
+							found = true;
+							foundNew = true;
+							break;
 						}
-						else if (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber && PostSplit) {
-							preSplitTip = blockChain.size() - 1;
-							postSplitBlockChain.clear();
-							postSplitBlockChain.push_back(blockChain[preSplitTip]);
-							postSplitBlockChain[0].length = 0;
-							postSplitTip = 0;
-							foundLonger = true;
-						}
-						found = true;
-						foundNew = true;
-						break;
 					}
 				}
-			}
-			else {
-				for (int j = 0; j < postSplitBlockChain.size(); ++j) {
-					if (newBlock.tipBlockIdNumbers == postSplitBlockChain[j].blockIdNumber) {
-						int TipIndex = j;
-						newBlock.TipIndex = TipIndex;
-						postSplitBlockChain[TipIndex].VerifIndex.push_back(postSplitBlockChain.size());
-						postSplitBlockChain.push_back(newBlock);
-						if (newBlock.length > postSplitBlockChain[postSplitTip].length) {
-							postSplitTip = postSplitBlockChain.size() - 1;
-							foundLonger = true;
+				else {
+					for (int j = 0; j < postSplitBlockChain.size(); ++j) {
+						if (newBlock.tipBlockIdNumbers == postSplitBlockChain[j].blockIdNumber) {
+							int TipIndex = j;
+							newBlock.TipIndex = TipIndex;
+							postSplitBlockChain[TipIndex].VerifIndex.push_back(postSplitBlockChain.size());
+							postSplitBlockChain.push_back(newBlock);
+							if (newBlock.length > postSplitBlockChain[postSplitTip].length) {
+								postSplitTip = postSplitBlockChain.size() - 1;
+								foundLonger = true;
+							}
+							found = true;
+							foundNew = true;
+							break;
 						}
-						found = true;
-						foundNew = true;
-						break;
 					}
 				}
+				// if not add the block to the unlinked blocks list to be checked when a new block is added to the chain
+				if (!found) {
+					unlinkedBlocks.push_back(newBlock);
+				}
 			}
-			// if not add the block to the unlinked blocks list to be checked when a new block is added to the chain
-			if (!found) {
-				unlinkedBlocks.push_back(newBlock);
-			}
-			
 		}
 		else {
 			Partitiontransaction newTransaction;
