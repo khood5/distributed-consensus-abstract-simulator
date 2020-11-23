@@ -57,7 +57,7 @@ void DS_bitcoin(const char** argv);
 void run_DS_PBFT(const char** argv);
 void markPBFT(const std::string&);
 void smartShard(const std::string&);
-std::vector<double> partition(const std::string&, int avgdelay, int rounds, int droprate);
+std::vector<double> partition(const std::string& filePath, int avgDelay, int rounds, int droprate);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
@@ -1275,9 +1275,9 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				}
 			}
 			for (int j = 0; j < Peers; j++) {
-				system[j]->mergeWaiting =  avgDelay + partition1Chain + partition2Chain;
+				system[j]->mergeWaiting = avgDelay + partition1Chain + partition2Chain;
+				//PartitionPeer::Lying = false;
 			}
-			//PartitionPeer::Lying = false;
 		}
 
 		system.receive(); // do the receive phase of the round 
