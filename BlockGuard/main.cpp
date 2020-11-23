@@ -57,18 +57,15 @@ void DS_bitcoin(const char** argv);
 void run_DS_PBFT(const char** argv);
 void markPBFT(const std::string&);
 void smartShard(const std::string&);
-std::vector<double> partition(const std::string&, int avgdelay, int rounds);
+std::vector<double> partition(const std::string&, int avgdelay, int rounds, int droprate);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
-	if (argc < 3) {
-		std::cerr << "Error: need algorithm and output path" << std::endl;
-		return 0;
-	}
 
 
-	std::string algorithm = argv[1];
-	std::string filePath = argv[2];
+
+	std::string algorithm = "partition";
+	std::string filePath = "partition";
 
 	if (algorithm == "example") {
 		std::ofstream out;
@@ -123,14 +120,14 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		for (int delay = 3; delay < 4; ++delay) {
-			int rounds = 300;
+		for (int delay = 1; delay < 10; ++delay) {
+			int rounds = 1000;
 			std::vector<double> Throughput(rounds, 0);
 			std::string truePath = filePath + "Delay" + std::to_string(delay);
-			int experiments = 10;
+			int experiments = 20;
 			for (int loop = 0; loop < experiments; ++loop) {
 				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
-				std::vector<double> T = partition(truePath, delay, rounds);
+				std::vector<double> T = partition(truePath, delay, rounds, 50);
 					 for (int i = 0; i < rounds; ++i) {
 						 Throughput[i] += T[i];
 					 }
@@ -1210,7 +1207,7 @@ void markPBFT(const std::string& filePath) {
 	summary.close();
 }
 
-std::vector<double> partition(const std::string& filePath, int avgDelay, int rounds) {
+std::vector<double> partition(const std::string& filePath, int avgDelay, int rounds, int droprate) {
 	std::ofstream logFile;
 	std::string file = filePath + ".txt";
 	logFile.open(file);
@@ -1226,7 +1223,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 	PartitionPeer::PostSplit = false;
 	bool Split = false; //used for counting throughput weird hack
 	PartitionPeer::NextblockIdNumber = 1;
-	PartitionPeer::DropRate = 10;
+	PartitionPeer::DropRate = droprate;
 	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
 		for (int k = 0; k < Peers / 2; k++) {
@@ -1252,7 +1249,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 		//std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
-		if (i == 100) {
+		if (i == 300) {
 			PartitionPeer::PostSplit = true;
 			Split = true;
 			//PartitionPeer::Lying = true; // when lying blocks can't be mined
@@ -1260,10 +1257,25 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				system[j]->intialSplitSetup();
 			}
 		}
-		if (i == 200) {
+		if (i == 500) {
 			PartitionPeer::PostSplit = false;
+			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
+			int partition2Chain = system[50]->postSplitBlockChain.size() - 1;
 			for (int j = 0; j < Peers; j++) {
-				system[j]->mergeWaiting =  avgDelay * 3;
+				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
+				if (j < Peers / 2) {
+					if (postSplitLength < partition1Chain) {
+						partition1Chain = postSplitLength;
+					}
+				}
+				else {
+					if (postSplitLength < partition2Chain) {
+						partition2Chain = postSplitLength;
+					}
+				}
+			}
+			for (int j = 0; j < Peers; j++) {
+				system[j]->mergeWaiting =  avgDelay + partition1Chain + partition2Chain;
 			}
 			//PartitionPeer::Lying = false;
 		}

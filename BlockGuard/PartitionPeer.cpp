@@ -127,7 +127,8 @@ std::ostream& operator<< (std::ostream &out, const PartitionPeer &peer) {
 bool PartitionPeer::mineBlock() {
 	if (Lying || mergeWaiting > 0) {
 		return false;
-	} else if (rand() % (doubleDelay * (_neighbors.size() + 1) / 2) == 0) {
+	} else if (rand() % 50 == 0) {
+		//(doubleDelay * (_neighbors.size() + 1) / 2)
 		return true;
 	}
 	else {
