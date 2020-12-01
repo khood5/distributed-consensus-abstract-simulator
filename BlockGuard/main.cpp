@@ -127,7 +127,7 @@ int main(int argc, const char* argv[]) {
 			int experiments = 20;
 			for (int loop = 0; loop < experiments; ++loop) {
 				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
-				std::vector<double> T = partition(truePath, delay, rounds, 50);
+				std::vector<double> T = partition(truePath, delay, rounds, 10);
 					 for (int i = 0; i < rounds; ++i) {
 						 Throughput[i] += T[i];
 					 }
@@ -1223,7 +1223,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 	PartitionPeer::PostSplit = false;
 	bool Split = false; //used for counting throughput weird hack
 	PartitionPeer::NextblockIdNumber = 1;
-	PartitionPeer::DropRate = droprate;
+	PartitionPeer::DropRate = 10;
 	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
 		for (int k = 0; k < Peers / 2; k++) {
@@ -1246,10 +1246,8 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 	}
 	std::vector<double> Throughput(rounds);
 	for (int i = 0; i < rounds; i++) {
-		//std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
-		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
-		if (i == 300) {
+		if (i == 200) {
 			PartitionPeer::PostSplit = true;
 			Split = true;
 			//PartitionPeer::Lying = true; // when lying blocks can't be mined
@@ -1257,7 +1255,24 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				system[j]->intialSplitSetup();
 			}
 		}
-		if (i == 500) {
+		if (i == 350) {
+			PartitionPeer::DropRate = 0;
+		}
+		if (i == 450) {
+			PartitionPeer::DropRate = 10;
+			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
+			for (int j = 0; j < Peers / 2; j++) {
+				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
+				if (postSplitLength < partition1Chain) {
+					partition1Chain = postSplitLength;
+				}
+			}
+			for (int j = 0; j < Peers / 2; j++) {
+
+				system[j]->mergeWaiting = avgDelay + partition1Chain;
+			}
+		}
+		if (i == 600) {
 			PartitionPeer::PostSplit = false;
 			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
 			int partition2Chain = system[50]->postSplitBlockChain.size() - 1;
