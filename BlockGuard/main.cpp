@@ -120,8 +120,8 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		for (int delay = 1; delay < 10; ++delay) {
-			int rounds = 1000;
+		for (int delay = 1; delay < 11; ++delay) {
+			int rounds = 1100;
 			std::vector<double> Throughput(rounds, 0);
 			std::string truePath = filePath + "Delay" + std::to_string(delay);
 			int experiments = 20;
@@ -1255,10 +1255,10 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				system[j]->intialSplitSetup();
 			}
 		}
-		if (i == 350) {
+		if (i == 300) {
 			PartitionPeer::DropRate = 0;
 		}
-		if (i == 450) {
+		if (i == 400) {
 			PartitionPeer::DropRate = 10;
 			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
 			for (int j = 0; j < Peers / 2; j++) {

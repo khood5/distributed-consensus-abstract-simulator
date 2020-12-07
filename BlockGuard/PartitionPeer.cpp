@@ -309,7 +309,6 @@ bool PartitionPeer::checkInStrm() {
 	if (foundNew) {
 		foundLonger = linkUnlinkedBlocks(foundLonger);
 	}
-	this->counter;
 	
 	_inStream.clear();
 	return foundLonger;
