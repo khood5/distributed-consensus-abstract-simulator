@@ -20,6 +20,7 @@ struct PartitionBlock {
 	vector<int>			VerifIndex;
 	int					length;
 	bool				postSplit;
+	bool				postSplit2;
 };
 
 struct PartitionBlockMessage {
@@ -46,25 +47,30 @@ public:
 	~PartitionPeer();
 	vector<PartitionBlock> blockChain;
 	vector<PartitionBlock> postSplitBlockChain;
+	vector<PartitionBlock> postSplitBlockChain2;
 	deque<PartitionBlock>  unlinkedBlocks;
 	deque<DroppedBlock>  droppedBlocks;
 	deque<Partitiontransaction>	  transactions;
 	int					  preSplitTip = 0;
 	int					  postSplitTip = 0;
+	int					  postSplitTip2 = 0;
 	int					  mergeWaiting = 0;
 	static int  		  doubleDelay;
 	static int  		  NextblockIdNumber;
 	static bool			  PostSplit;
+	bool			      PostSplit2 = false;
 	static bool			  Lying;
 	static int			  DropRate;
 	std::map<std::string, Peer<PartitionBlockMessage>*> PostSplitNeighbors;
+	std::map<std::string, Peer<PartitionBlockMessage>*> PostSplitNeighbors2;
 	static bool PartitionTransactionSortFunc(Partitiontransaction i, Partitiontransaction j) {
 		return (i.priority < j.priority);
 	}
 	void				  incrementMergeWaiting();
 	void                  preformComputation();
 	void				  intialSplitSetup();
-	void				  findPostSplitNeighbors(vector<string> idList);
+	void				  intialSplitSetup2();
+	void				  findPostSplitNeighbors(vector<string> idList, int splitNumber);
 	std::set<int>		  findVerifTrans();
 	bool                  linkUnlinkedBlocks(bool foundLonger);
 	void				  findDroppedBlocks();

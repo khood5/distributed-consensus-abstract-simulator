@@ -120,14 +120,18 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		for (int delay = 1; delay < 11; ++delay) {
+		std::vector<int> delays;
+		delays.push_back(1);
+		delays.push_back(3);
+		delays.push_back(10);
+		for (int delay : delays) {
 			int rounds = 1100;
 			std::vector<double> Throughput(rounds, 0);
 			std::string truePath = filePath + "Delay" + std::to_string(delay);
-			int experiments = 20;
+			int experiments = 100;
 			for (int loop = 0; loop < experiments; ++loop) {
 				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
-				std::vector<double> T = partition(truePath, delay, rounds, 10);
+				std::vector<double> T = partition(truePath, delay, rounds, 0);
 					 for (int i = 0; i < rounds; ++i) {
 						 Throughput[i] += T[i];
 					 }
@@ -1222,8 +1226,9 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 	PartitionPeer::doubleDelay = avgDelay * 2;
 	PartitionPeer::PostSplit = false;
 	bool Split = false; //used for counting throughput weird hack
+	bool Split2 = false; //used for counting throughput weird hack
 	PartitionPeer::NextblockIdNumber = 1;
-	PartitionPeer::DropRate = 10;
+	PartitionPeer::DropRate = droprate;
 	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
 		for (int k = 0; k < Peers / 2; k++) {
@@ -1231,7 +1236,7 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				idList.push_back(system[k]->id());
 			}
 		}
-		system[i]->findPostSplitNeighbors(idList);
+		system[i]->findPostSplitNeighbors(idList, 1);
 		idList.clear();
 	}
 	for (int i = Peers / 2; i < Peers; i++) {
@@ -1241,10 +1246,31 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 				idList.push_back(system[k]->id());
 			}
 		}
-		system[i]->findPostSplitNeighbors(idList);
+		system[i]->findPostSplitNeighbors(idList, 1);
+		idList.clear();
+	}
+	for (int i = 0; i < Peers / 4; i++) {
+		std::vector<std::string> idList;
+		for (int k = 0; k < Peers / 4; k++) {
+			if (i != k) {
+				idList.push_back(system[k]->id());
+			}
+		}
+		system[i]->findPostSplitNeighbors(idList, 2);
+		idList.clear();
+	}
+	for (int i = Peers / 4; i < Peers / 2; i++) {
+		std::vector<std::string> idList;
+		for (int k = Peers / 4; k < Peers / 2; k++) {
+			if (i != k) {
+				idList.push_back(system[k]->id());
+			}
+		}
+		system[i]->findPostSplitNeighbors(idList, 2);
 		idList.clear();
 	}
 	std::vector<double> Throughput(rounds);
+	int FirstMergeLength = 0;
 	for (int i = 0; i < rounds; i++) {
 		system[rand() % Peers]->sendTransaction(i + 1);
 		if (i == 200) {
@@ -1256,41 +1282,55 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 			}
 		}
 		if (i == 300) {
-			PartitionPeer::DropRate = 0;
+			Split2 = true;
+			for (int j = 0; j < Peers / 2; j++) {
+				system[j]->intialSplitSetup2();
+				system[j]->PostSplit2 = true;
+			}
 		}
 		if (i == 400) {
-			PartitionPeer::DropRate = 10;
-			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
+			int partition1Chain = system[0]->postSplitBlockChain2[0].length;
+			int partition2Chain = system[25]->postSplitBlockChain2[0].length;
 			for (int j = 0; j < Peers / 2; j++) {
-				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
-				if (postSplitLength < partition1Chain) {
-					partition1Chain = postSplitLength;
-				}
-			}
-			for (int j = 0; j < Peers / 2; j++) {
-
-				system[j]->mergeWaiting = avgDelay + partition1Chain;
-			}
-		}
-		if (i == 600) {
-			PartitionPeer::PostSplit = false;
-			int partition1Chain = system[0]->postSplitBlockChain.size() - 1;
-			int partition2Chain = system[50]->postSplitBlockChain.size() - 1;
-			for (int j = 0; j < Peers; j++) {
-				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
-				if (j < Peers / 2) {
-					if (postSplitLength < partition1Chain) {
+				system[j]->PostSplit2 = false;
+				int postSplitLength = system[j]->postSplitBlockChain2[system[j]->postSplitTip2].length;
+				if (j < Peers / 4) {
+					if (postSplitLength > partition1Chain) {
 						partition1Chain = postSplitLength;
 					}
 				}
 				else {
-					if (postSplitLength < partition2Chain) {
+					if (postSplitLength > partition2Chain) {
 						partition2Chain = postSplitLength;
 					}
 				}
 			}
+			FirstMergeLength = avgDelay + partition1Chain + partition2Chain;
+			for (int j = 0; j < Peers / 2; j++) {
+
+				system[j]->mergeWaiting = FirstMergeLength;
+			}
+		}
+		if (i == 600) {
+			PartitionPeer::PostSplit = false;
+			int partition1Chain = system[0]->postSplitBlockChain[0].length;
+			int partition2Chain = system[50]->postSplitBlockChain[0].length;
 			for (int j = 0; j < Peers; j++) {
-				system[j]->mergeWaiting = avgDelay + partition1Chain + partition2Chain;
+				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
+				if (j < Peers / 2) {
+					if (postSplitLength > partition1Chain) {
+						partition1Chain = postSplitLength;
+					}
+				}
+				else {
+					if (postSplitLength > partition2Chain) {
+						partition2Chain = postSplitLength;
+					}
+				}
+			}
+			
+			for (int j = 0; j < Peers; j++) {
+				system[j]->mergeWaiting = FirstMergeLength + partition1Chain + partition2Chain;
 				//PartitionPeer::Lying = false;
 			}
 		}
@@ -1307,6 +1347,9 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 		int partition1Throughput = system[0]->postSplitBlockChain.size() - 1;
 		int partition2Throughput = system[50]->postSplitBlockChain.size() - 1;
 
+		int partition3Throughput = system[0]->postSplitBlockChain2.size() - 1;
+		int partition4Throughput = system[25]->postSplitBlockChain2.size() - 1;
+
 		for (int j = 0; j < Peers; j++) {
 			int peerBlockLength = system[j]->blockChain[system[j]->preSplitTip].length;
 			if (peerBlockLength < preSplitThroughput) {
@@ -1318,6 +1361,19 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 					if (postSplitLength < partition1Throughput) {
 						partition1Throughput = postSplitLength;
 					}
+					if (Split2 && system[j]->postSplitTip2 > 0) {
+						int postSplitLength = system[j]->postSplitBlockChain2[system[j]->postSplitTip2].length;
+						if (j < Peers / 4) {
+							if (postSplitLength < partition3Throughput) {
+								partition3Throughput = postSplitLength;
+							}
+						}
+						else {
+							if (postSplitLength < partition4Throughput) {
+								partition4Throughput = postSplitLength;
+							}
+						}
+					}
 				}
 				else {
 					if (postSplitLength < partition2Throughput) {
@@ -1325,11 +1381,15 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 					}
 				}
 			}
+			
 
 		}
 		int throughput = preSplitThroughput;
 		if (Split) {
 			throughput += partition1Throughput + partition2Throughput;
+		}
+		if (Split2) {
+			throughput += partition3Throughput + partition4Throughput;
 		}
 		Throughput[i] = throughput;
 		//std::cout << throughput << std::endl;

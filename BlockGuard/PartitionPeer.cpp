@@ -18,6 +18,7 @@ PartitionPeer::PartitionPeer(std::string id) : Peer(id) {
 	Genesis.trans = 0;
 	Genesis.length = 0;
 	Genesis.postSplit = false;
+	Genesis.postSplit2 = false;
 	blockChain.push_back(Genesis);
 }
 
@@ -54,17 +55,29 @@ void PartitionPeer::preformComputation() {
 				blockChain[preSplitTip].VerifIndex.push_back(blockChain.size());
 				newBlock.length = blockChain[preSplitTip].length + 1;
 				newBlock.postSplit = false;
+				newBlock.postSplit2 = false;
 				preSplitTip = blockChain.size();
 				blockChain.push_back(newBlock);
 			}
-			else {
+			else if (!PostSplit2) {
 				newBlock.TipIndex = postSplitTip;
 				newBlock.tipBlockIdNumbers = postSplitBlockChain[postSplitTip].blockIdNumber;
 				postSplitBlockChain[postSplitTip].VerifIndex.push_back(postSplitBlockChain.size());
 				newBlock.length = postSplitBlockChain[postSplitTip].length + 1;
 				newBlock.postSplit = true;
+				newBlock.postSplit2 = false;
 				postSplitTip = postSplitBlockChain.size();
 				postSplitBlockChain.push_back(newBlock);
+			}
+			else {
+				newBlock.TipIndex = postSplitTip2;
+				newBlock.tipBlockIdNumbers = postSplitBlockChain2[postSplitTip2].blockIdNumber;
+				postSplitBlockChain2[postSplitTip2].VerifIndex.push_back(postSplitBlockChain2.size());
+				newBlock.length = postSplitBlockChain2[postSplitTip2].length + 1;
+				newBlock.postSplit = true;
+				newBlock.postSplit2 = true;
+				postSplitTip2 = postSplitBlockChain2.size();
+				postSplitBlockChain2.push_back(newBlock);
 			}
 			sendBlock(newBlock);
 		}
@@ -84,11 +97,32 @@ void PartitionPeer::intialSplitSetup() {
 	postSplitBlockChain[0].length = 0;
 }
 
-void PartitionPeer::findPostSplitNeighbors(vector<string> idList) {
-	for (int i = 0; i < idList.size(); i++) {
-		for (auto it = _neighbors.begin(); it != _neighbors.end(); it++) {
-			if (idList[i] == it->first) {
-				PostSplitNeighbors[idList[i]] = it->second;
+void PartitionPeer::intialSplitSetup2() {
+	for (int j = 0; j < postSplitBlockChain.size(); ++j) {
+		if (postSplitBlockChain[j].length == postSplitBlockChain[postSplitTip].length && postSplitBlockChain[j].blockIdNumber < postSplitBlockChain[postSplitTip].blockIdNumber) {
+			postSplitTip = j;
+		}
+	}
+	postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+	postSplitBlockChain2[0].length = 0;
+}
+
+void PartitionPeer::findPostSplitNeighbors(vector<string> idList, int splitNumber) {
+	if (splitNumber == 1) {
+		for (int i = 0; i < idList.size(); i++) {
+			for (auto it = _neighbors.begin(); it != _neighbors.end(); it++) {
+				if (idList[i] == it->first) {
+					PostSplitNeighbors[idList[i]] = it->second;
+				}
+			}
+		}
+	}
+	else if (splitNumber == 2) {
+		for (int i = 0; i < idList.size(); i++) {
+			for (auto it = _neighbors.begin(); it != _neighbors.end(); it++) {
+				if (idList[i] == it->first) {
+					PostSplitNeighbors2[idList[i]] = it->second;
+				}
 			}
 		}
 	}
@@ -105,6 +139,11 @@ std::set<int> PartitionPeer::findVerifTrans() {
 	while (Index != 0) {
 		transList.insert(postSplitBlockChain[Index].trans);
 		Index = postSplitBlockChain[Index].TipIndex;
+	}
+	Index = postSplitTip2;
+	while (Index != 0) {
+		transList.insert(postSplitBlockChain2[Index].trans);
+		Index = postSplitBlockChain2[Index].TipIndex;
 	}
 	
 	return transList;
@@ -158,6 +197,12 @@ bool PartitionPeer::linkUnlinkedBlocks(bool foundLonger) {
 							postSplitBlockChain[0].length = 0;
 							postSplitTip = 0;
 						}
+						if (PostSplit2) {
+							postSplitBlockChain2.clear();
+							postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+							postSplitBlockChain2[0].length = 0;
+							postSplitTip2 = 0;
+						}
 						foundLonger = true;
 					}
 					else if (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber && PostSplit) {
@@ -167,13 +212,19 @@ bool PartitionPeer::linkUnlinkedBlocks(bool foundLonger) {
 						postSplitBlockChain[0].length = 0;
 						postSplitTip = 0;
 						foundLonger = true;
+						if (PostSplit2) {
+							postSplitBlockChain2.clear();
+							postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+							postSplitBlockChain2[0].length = 0;
+							postSplitTip2 = 0;
+						}
 					}
 					it = unlinkedBlocks.begin();
 					break;
 				}
 			}
 		}
-		else {
+		else if (!newBlock.postSplit2) {
 			for (int j = 0; j < postSplitBlockChain.size(); ++j) {
 				if (newBlock.tipBlockIdNumbers == postSplitBlockChain[j].blockIdNumber) {
 					int TipIndex = j;
@@ -183,6 +234,37 @@ bool PartitionPeer::linkUnlinkedBlocks(bool foundLonger) {
 					unlinkedBlocks.erase(it);
 					if (newBlock.length > postSplitBlockChain[postSplitTip].length) {
 						postSplitTip = postSplitBlockChain.size() - 1;
+						foundLonger = true;
+						if (PostSplit2) {
+							postSplitBlockChain2.clear();
+							postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+							postSplitBlockChain2[0].length = 0;
+							postSplitTip2 = 0;
+						}
+					}
+					else if (newBlock.length == postSplitBlockChain[postSplitTip].length && newBlock.blockIdNumber < postSplitBlockChain[postSplitTip].blockIdNumber && PostSplit2) {
+						postSplitTip = postSplitBlockChain.size() - 1;
+						foundLonger = true;
+						postSplitBlockChain2.clear();
+						postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+						postSplitBlockChain2[0].length = 0;
+						postSplitTip2 = 0;
+					}
+					it = unlinkedBlocks.begin();
+					break;
+				}
+			}
+		}
+		else {
+			for (int j = 0; j < postSplitBlockChain2.size(); ++j) {
+				if (newBlock.tipBlockIdNumbers == postSplitBlockChain2[j].blockIdNumber) {
+					int TipIndex = j;
+					newBlock.TipIndex = TipIndex;
+					postSplitBlockChain2[TipIndex].VerifIndex.push_back(postSplitBlockChain2.size());
+					postSplitBlockChain2.push_back(newBlock);
+					unlinkedBlocks.erase(it);
+					if (newBlock.length > postSplitBlockChain2[postSplitTip2].length) {
+						postSplitTip2 = postSplitBlockChain2.size() - 1;
 						foundLonger = true;
 					}
 					it = unlinkedBlocks.begin();
@@ -276,7 +358,7 @@ bool PartitionPeer::checkInStrm() {
 						}
 					}
 				}
-				else {
+				else if (!newBlock.postSplit2) {
 					for (int j = 0; j < postSplitBlockChain.size(); ++j) {
 						if (newBlock.tipBlockIdNumbers == postSplitBlockChain[j].blockIdNumber) {
 							int TipIndex = j;
@@ -285,6 +367,37 @@ bool PartitionPeer::checkInStrm() {
 							postSplitBlockChain.push_back(newBlock);
 							if (newBlock.length > postSplitBlockChain[postSplitTip].length) {
 								postSplitTip = postSplitBlockChain.size() - 1;
+								if (PostSplit2) {
+									postSplitBlockChain2.clear();
+									postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+									postSplitBlockChain2[0].length = 0;
+									postSplitTip2 = 0;
+								}
+								foundLonger = true;
+							}
+							else if (newBlock.length == postSplitBlockChain[postSplitTip].length && newBlock.blockIdNumber < postSplitBlockChain[postSplitTip].blockIdNumber && PostSplit2) {
+								postSplitTip = postSplitBlockChain.size() - 1;
+								postSplitBlockChain2.clear();
+								postSplitBlockChain2.push_back(postSplitBlockChain[postSplitTip]);
+								postSplitBlockChain2[0].length = 0;
+								postSplitTip2 = 0;
+								foundLonger = true;
+							}
+							found = true;
+							foundNew = true;
+							break;
+						}
+					}
+				}
+				else {
+					for (int j = 0; j < postSplitBlockChain2.size(); ++j) {
+						if (newBlock.tipBlockIdNumbers == postSplitBlockChain2[j].blockIdNumber) {
+							int TipIndex = j;
+							newBlock.TipIndex = TipIndex;
+							postSplitBlockChain2[TipIndex].VerifIndex.push_back(postSplitBlockChain2.size());
+							postSplitBlockChain2.push_back(newBlock);
+							if (newBlock.length > postSplitBlockChain2[postSplitTip2].length) {
+								postSplitTip2 = postSplitBlockChain2.size() - 1;
 								foundLonger = true;
 							}
 							found = true;
@@ -335,8 +448,16 @@ void PartitionPeer::sendBlock(PartitionBlock minedBlock) {
 			_outStream.push_back(newMessage);
 		}
 	}
-	else {
+	else if (!PostSplit2) {
 		for (auto it = PostSplitNeighbors.begin(); it != PostSplitNeighbors.end(); it++)
+		{
+			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+			newMessage.setBody(message);
+			_outStream.push_back(newMessage);
+		}
+	}
+	else {
+		for (auto it = PostSplitNeighbors2.begin(); it != PostSplitNeighbors2.end(); it++)
 		{
 			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
 			newMessage.setBody(message);
@@ -361,12 +482,20 @@ void PartitionPeer::sendTransaction(int tranID) {
 			_outStream.push_back(newMessage);
 		}
 	}
-	else {
+	else if (!PostSplit2) {
 		for (auto it = PostSplitNeighbors.begin(); it != PostSplitNeighbors.end(); it++)
 		{
 			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
 			newMessage.setBody(message);
 			_outStream.push_back(newMessage);
 		}
+	}
+	else {
+	for (auto it = PostSplitNeighbors2.begin(); it != PostSplitNeighbors2.end(); it++)
+	{
+		Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+		newMessage.setBody(message);
+		_outStream.push_back(newMessage);
+	}
 	}
 }
