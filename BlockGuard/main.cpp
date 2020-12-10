@@ -122,10 +122,11 @@ int main(int argc, const char* argv[]) {
 	else if (algorithm == "partition") {
 		std::vector<int> delays;
 		delays.push_back(1);
+		delays.push_back(2);
 		delays.push_back(3);
 		delays.push_back(10);
 		for (int delay : delays) {
-			int rounds = 1100;
+			int rounds = 400;
 			std::vector<double> Throughput(rounds, 0);
 			std::string truePath = filePath + "Delay" + std::to_string(delay);
 			int experiments = 100;
@@ -1276,64 +1277,65 @@ std::vector<double> partition(const std::string& filePath, int avgDelay, int rou
 		if (i == 200) {
 			PartitionPeer::PostSplit = true;
 			Split = true;
-			//PartitionPeer::Lying = true; // when lying blocks can't be mined
+			PartitionPeer::Lying = true; // when lying blocks can't be mined
 			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();
 			}
 		}
 		if (i == 300) {
-			Split2 = true;
-			for (int j = 0; j < Peers / 2; j++) {
-				system[j]->intialSplitSetup2();
-				system[j]->PostSplit2 = true;
-			}
+			PartitionPeer::Lying = false; // when lying blocks can be mined again
+			//Split2 = true;
+			//for (int j = 0; j < Peers / 2; j++) {
+			//	system[j]->intialSplitSetup2();
+			//	system[j]->PostSplit2 = true;
+			//}
 		}
-		if (i == 400) {
-			int partition1Chain = system[0]->postSplitBlockChain2[0].length;
-			int partition2Chain = system[25]->postSplitBlockChain2[0].length;
-			for (int j = 0; j < Peers / 2; j++) {
-				system[j]->PostSplit2 = false;
-				int postSplitLength = system[j]->postSplitBlockChain2[system[j]->postSplitTip2].length;
-				if (j < Peers / 4) {
-					if (postSplitLength > partition1Chain) {
-						partition1Chain = postSplitLength;
-					}
-				}
-				else {
-					if (postSplitLength > partition2Chain) {
-						partition2Chain = postSplitLength;
-					}
-				}
-			}
-			FirstMergeLength = avgDelay + partition1Chain + partition2Chain;
-			for (int j = 0; j < Peers / 2; j++) {
+		//if (i == 400) {
+		//	int partition1Chain = system[0]->postSplitBlockChain2[0].length;
+		//	int partition2Chain = system[25]->postSplitBlockChain2[0].length;
+		//	for (int j = 0; j < Peers / 2; j++) {
+		//		system[j]->PostSplit2 = false;
+		//		int postSplitLength = system[j]->postSplitBlockChain2[system[j]->postSplitTip2].length;
+		//		if (j < Peers / 4) {
+		//			if (postSplitLength > partition1Chain) {
+		//				partition1Chain = postSplitLength;
+		//			}
+		//		}
+		//		else {
+		//			if (postSplitLength > partition2Chain) {
+		//				partition2Chain = postSplitLength;
+		//			}
+		//		}
+		//	}
+		//	FirstMergeLength = avgDelay + partition1Chain + partition2Chain;
+		//	for (int j = 0; j < Peers / 2; j++) {
 
-				system[j]->mergeWaiting = FirstMergeLength;
-			}
-		}
-		if (i == 600) {
-			PartitionPeer::PostSplit = false;
-			int partition1Chain = system[0]->postSplitBlockChain[0].length;
-			int partition2Chain = system[50]->postSplitBlockChain[0].length;
-			for (int j = 0; j < Peers; j++) {
-				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
-				if (j < Peers / 2) {
-					if (postSplitLength > partition1Chain) {
-						partition1Chain = postSplitLength;
-					}
-				}
-				else {
-					if (postSplitLength > partition2Chain) {
-						partition2Chain = postSplitLength;
-					}
-				}
-			}
-			
-			for (int j = 0; j < Peers; j++) {
-				system[j]->mergeWaiting = FirstMergeLength + partition1Chain + partition2Chain;
-				//PartitionPeer::Lying = false;
-			}
-		}
+		//		system[j]->mergeWaiting = FirstMergeLength;
+		//	}
+		//}
+		//if (i == 600) {
+		//	PartitionPeer::PostSplit = false;
+		//	int partition1Chain = system[0]->postSplitBlockChain[0].length;
+		//	int partition2Chain = system[50]->postSplitBlockChain[0].length;
+		//	for (int j = 0; j < Peers; j++) {
+		//		int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
+		//		if (j < Peers / 2) {
+		//			if (postSplitLength > partition1Chain) {
+		//				partition1Chain = postSplitLength;
+		//			}
+		//		}
+		//		else {
+		//			if (postSplitLength > partition2Chain) {
+		//				partition2Chain = postSplitLength;
+		//			}
+		//		}
+		//	}
+		//	
+		//	for (int j = 0; j < Peers; j++) {
+		//		system[j]->mergeWaiting = FirstMergeLength + partition1Chain + partition2Chain;
+		//		//PartitionPeer::Lying = false;
+		//	}
+		//}
 
 		system.receive(); // do the receive phase of the round 
 		//system.log(); // log the system state
