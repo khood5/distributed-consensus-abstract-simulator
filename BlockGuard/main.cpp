@@ -120,19 +120,19 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		std::vector<int> delays;
-		delays.push_back(1);
-		delays.push_back(2);
-		delays.push_back(3);
-		delays.push_back(10);
-		for (int delay : delays) {
+		std::vector<int> dropRates;
+		dropRates.push_back(0);
+		dropRates.push_back(20);
+		dropRates.push_back(10);
+		dropRates.push_back(5);
+		for (int DropRate : dropRates) {
 			int rounds = 400;
 			std::vector<double> Throughput(rounds, 0);
-			std::string truePath = filePath + "Delay" + std::to_string(delay);
+			std::string truePath = filePath + "DropRate" + std::to_string(DropRate);
 			int experiments = 100;
 			for (int loop = 0; loop < experiments; ++loop) {
-				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
-				std::vector<double> T = partition(truePath, delay, rounds, 0);
+				std::cout << "-- Starting Test " << loop + 1 << " DropRate " << DropRate << " --" << std::endl;
+				std::vector<double> T = partition(truePath, 2, rounds, DropRate);
 					 for (int i = 0; i < rounds; ++i) {
 						 Throughput[i] += T[i];
 					 }
