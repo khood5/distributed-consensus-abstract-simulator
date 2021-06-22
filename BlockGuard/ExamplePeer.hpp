@@ -26,21 +26,22 @@ struct ExampleMessage{
 //
 class ExamplePeer : public Peer<ExampleMessage>{
 protected:
-    int counter;
+    int                             _counter;
+    std::deque<ExampleMessage>      _txQueue;
 public:
     // methods that must be defined when deriving from Peer
     ExamplePeer                             (std::string);
     ExamplePeer                             (const ExamplePeer &rhs);
     ~ExamplePeer                            ();
     void                 preformComputation ();
-    void                 makeRequest        (){};
+    void                 makeRequest        ();
     void                 log                ()const{printTo(*_log);};
     std::ostream&        printTo            (std::ostream&)const;
     friend std::ostream& operator<<         (std::ostream&, const ExamplePeer&);
 
     // its normally a good idea to make some getters and setters for a peer to enable testing 
     //  of the peers state durring an experment and to get metrics. 
-    int                  getCounter()const                                      {return counter;};
-    void                 setCounter(int c)                                      {counter = c;};
+    int                  getCounter()const                                      {return _counter;};
+    void                 setCounter(int c)                                      {_counter = c;};
 };
 #endif /* ExamplePeer_hpp */

@@ -50,14 +50,21 @@ int main(int argc, const char* argv[]) {
 }
 
 void Example(std::ofstream& logFile) {
+	srand (time(NULL));
+	int NUMBER_OF_PEERS = 5; 
+
 	ByzantineNetwork<ExampleMessage, ExamplePeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
-	system.initNetwork(5); // Initialize the system (create it) with 5 peers given the above settings
+	system.initNetwork(NUMBER_OF_PEERS); // Initialize the system (create it) with 5 peers given the above settings
 
 	for (int i = 0; i < 3; i++) {
 		logFile << "-- STARTING ROUND " << i << " --" << std::endl; // write in the log when the round started
+
+		// each round we select a peer at random to submit a new TX to. 
+		// this resultes in a trasaction rate of 1TX per round
+		system[rand() % NUMBER_OF_PEERS]->makeRequest();
 
 		system.receive(); // do the receive phase of the round
 		//system.log(); // log the system state
@@ -69,14 +76,21 @@ void Example(std::ofstream& logFile) {
 		logFile << "-- ENDING ROUND " << i << " --" << std::endl; // log the end of a round
 	}
 
+	NUMBER_OF_PEERS = 3;
 	system = ByzantineNetwork<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
 	system.setLog(std::cout); // set the system to write log to terminal
 	system.setToRandom();
 	system.setMaxDelay(10);
-	system.initNetwork(3);
+	system.initNetwork(NUMBER_OF_PEERS);
 
 	for (int i = 0; i < 3; i++) {
 		std::cout << "-- STARTING ROUND " << i << " --" << std::endl; // print outwhen the round started
+
+		// this time we submit a new TX to each peer increasing 
+		// the trasaction rate to 3TX per round (sense we have 3 peers)
+		for(int i = 0; i < system.size(); i++){
+			system[i]->makeRequest();
+		}
 
 		system.receive();
 		system.log(); // log now goes to the terminal
