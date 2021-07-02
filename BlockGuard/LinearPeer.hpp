@@ -33,7 +33,7 @@ public:
     std::string reqType   = "N";
     bool leaving          = false;
     int requestsSatisfied = 0;
-    int latency      = 0;
+    int latency           = 0;
     void                 preformComputation ();
     void                 makeRequest        (){};
     void                 sendMessage        (std::string peer, LinearMessage message);

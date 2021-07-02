@@ -1,5 +1,0 @@
-Number of Messages 35687
-Number of Requests Satisfied 1131
-Number of Pending Requests 55
-Latency 46
--- ENDING TEST  --

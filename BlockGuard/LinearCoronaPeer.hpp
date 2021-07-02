@@ -14,7 +14,7 @@
 struct LinearCoronaMessage {
     std::string reqId;
     std::string action; // options are R, N
-    
+    int roundSubmitted;
 };
 
 class LinearCoronaPeer : public Peer<LinearCoronaMessage>{
@@ -25,8 +25,11 @@ public:
     LinearCoronaPeer                              (std::string);
     LinearCoronaPeer                              (const LinearCoronaPeer &rhs);
     ~LinearCoronaPeer                             ();
-    std::string left;
-    std::string right;
+    std::string left      = "MIN";
+    std::string right     = "ZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+    int requestsSatisfied = 0;
+    int latency           = 0;
+    bool alive            = false;
     void                 heartBeat();
     void                 preformComputation ();
     void                 makeRequest        (){};

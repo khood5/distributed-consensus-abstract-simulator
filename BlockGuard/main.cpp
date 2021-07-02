@@ -27,13 +27,14 @@ using std::vector; using std::string;
 
 void Example(std::ofstream& logFile);
 void Linear(std::ofstream& logFile, int churnRate);
+void LinearCorona(std::ofstream& logFile, int churnRate);
 vector<int> createLinearUnderlay(int size, vector<string> ids);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
 
-	std::string algorithm = "linear";
-	std::string filePath = "Linear";
+	std::string algorithm = "linearCorona";
+	std::string filePath = "LinearCorona";
 
 	if (algorithm == "example") {
 		std::ofstream out;
@@ -54,6 +55,19 @@ int main(int argc, const char* argv[]) {
 					std::cerr << "Error: could not open file" << file << std::endl;
 				}
 				Linear(out, churnRate);
+			}
+		}
+	}
+	else if (algorithm == "linearCorona") {
+		for (int churnRate = 1; churnRate < 6; churnRate++) {
+			for (int i = 1; i < 11; i++) {
+				std::ofstream out;
+				std::string file = filePath + "churnRate" + std::to_string(churnRate) + "Test" + std::to_string(i) + ".txt";
+				out.open(file);
+				if (out.fail()) {
+					std::cerr << "Error: could not open file" << file << std::endl;
+				}
+				LinearCorona(out, churnRate);
 			}
 		}
 	}
@@ -229,16 +243,17 @@ void Linear(std::ofstream& logFile, int churnRate) {
 	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
 }
 
-void LinearCorona(std::ofstream& logFile) {
+void LinearCorona(std::ofstream& logFile, int churnRate) {
 	ByzantineNetwork<LinearCoronaMessage, LinearCoronaPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
-	system.setMaxDelay(2); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
-	int Peers = 5;
-	int StartingPeers = 5;
+	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
+	int Peers = 100 + churnRate * 150;
+	int StartingPeers = 100;
+	int numberOfRounds = 1000;
 	system.initNetwork(Peers); // Initialize the system (create it) with 5 peers given the above settings
 
-	vector<int> CurrentNodes;
+	vector<int> CurrentNodes, UsedNodes;
 	vector<string> ids;
 	for (int i = 0; i < Peers; i++) {
 		ids.push_back(system[i]->id());
@@ -252,11 +267,46 @@ void LinearCorona(std::ofstream& logFile) {
 	}
 	system[CurrentNodes[StartingPeers - 1]]->left = system[CurrentNodes[StartingPeers - 2]]->id();
 	system[CurrentNodes[StartingPeers - 1]]->right = "ZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+	for (int i = 0; i < CurrentNodes.size(); i++) {
+		UsedNodes.push_back(CurrentNodes[i]);
+		system[CurrentNodes[i]]->alive = true;
+	}
+	int submittedRequests = 0;
+	for (int i = 0; i < numberOfRounds; i++) {
+		//logFile << "-- STARTING ROUND " << i << " --" << std::endl; // write in the log when the round started
+		int selectedNode;
 
-	for (int i = 0; i < 50; i++) {
-		logFile << "-- STARTING ROUND " << i << " --" << std::endl; // write in the log when the round started
-		if (i == 20) {
+		// Join leave rate
+		if (rand() % 10 < churnRate) {
+			submittedRequests++;
+			// Leave
+			if (rand() % 2 == 0) {
+				selectedNode = rand() % CurrentNodes.size();
+				system[CurrentNodes[selectedNode]]->alive = false;
+			}
+			// Join
+			else {
+				selectedNode = rand() % CurrentNodes.size();
+				int nodeToSendTo = rand() % CurrentNodes.size();
+				system[CurrentNodes[selectedNode]]->alive = true;
+				LinearCoronaMessage message;
+				message.action = "N";
+				message.roundSubmitted = i;
+				message.reqId = system[CurrentNodes[selectedNode]]->id();
+				system[CurrentNodes[selectedNode]]->sendMessage(system[CurrentNodes[nodeToSendTo]]->id(), message);
+			}
+		}
 
+		// Request rate
+		if (true) {
+			submittedRequests++;
+			selectedNode = rand() % CurrentNodes.size();
+			LinearCoronaMessage message;
+			message.action = "R";
+			message.roundSubmitted = i;
+			message.reqId = system[CurrentNodes[selectedNode]]->id();
+			int nodeToSendTo = rand() % CurrentNodes.size();
+			system[CurrentNodes[selectedNode]]->sendMessage(system[CurrentNodes[nodeToSendTo]]->id(), message);
 		}
 		system.receive(); // do the receive phase of the round
 		//system.log(); // log the system state
@@ -265,15 +315,44 @@ void LinearCorona(std::ofstream& logFile) {
 		system.transmit(); // do the transmit phase of the round
 		//system.log();
 
-		logFile << "-- ENDING ROUND " << i << " --" << std::endl; // log the end of a round
+		std::cout << "-- ENDING ROUND " << i << " --" << std::endl; // log the end of a round
 	}
-	int numberOfMessages = 0;
+	int numberOfMessages = 0, requestsSatisfied = 0, latency = 0, pendingRequests = 0, droppedRequests = 0, pendingLatency = 0, droppedLatency = 0, totalLatency = 0;
 	for (int i = 0; i < system.size(); i++) {
 		numberOfMessages += system[i]->getMessageCount(); // notice that the index operator ([]) return a pointer to a peer. NEVER DELETE THIS PEER INSTANCE.
 														  //    The netwrok class deconstructor will get ride off ALL peer instances once it is deconstructed.
 														  //    Use the -> to call method on the peer instance. The Network class will also cast the instance to
 														  //    your derived class so all methods that you add will be avalable via the -> operator
+		requestsSatisfied += system[i]->requestsSatisfied;
+		latency += system[i]->latency;
+		for (int j = 0; j < Peers; j++) {
+			if (system[i]->id() != system[j]->id()) {
+				auto messages = *system[i]->getChannelFrom(system[j]->id());
+				for (int k = 0; k < messages.size(); k++) {
+					auto v = messages[k];
+					if (v.getMessage().action == "R") {
+						pendingRequests++;
+						pendingLatency += numberOfRounds - v.getMessage().roundSubmitted;
+					}
+				}
+			}
+		}
+		auto messages = system[i]->getInStream();
+		for (int k = 0; k < messages.size(); k++) {
+			auto v = messages[k];
+			if (v.getMessage().action == "R") {
+				droppedRequests++;
+				droppedLatency += numberOfRounds - v.getMessage().roundSubmitted;
+			}
+		}
+
 	}
+	logFile << "Number of Messages " << numberOfMessages << std::endl;
+	logFile << "Number of Requests Satisfied " << requestsSatisfied << std::endl;
+	logFile << "Number of Pending Requests " << pendingRequests << std::endl;
+	logFile << "Latency " << (latency + pendingLatency + droppedLatency) / (pendingRequests + requestsSatisfied + droppedRequests) << std::endl;
+
+	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
 }
 
 vector<int> createLinearUnderlay(int size, vector<string> ids) {

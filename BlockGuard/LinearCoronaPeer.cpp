@@ -24,51 +24,55 @@ LinearCoronaPeer::LinearCoronaPeer(std::string id) : Peer(id) {
 }
 
 void LinearCoronaPeer::preformComputation() {
-	for (int i = 0; i < _inStream.size(); i++) {
-		std::string source = _inStream[i].sourceId();
-		LinearCoronaMessage message = _inStream[i].getMessage();
-		std::string reqId = message.reqId;
-		if (message.action == "R") {
-			if (_id == reqId) {
-				// Node found
+	if (alive) {
+		for (int i = 0; i < _inStream.size(); i++) {
+			std::string source = _inStream[i].sourceId();
+			LinearCoronaMessage message = _inStream[i].getMessage();
+			std::string reqId = message.reqId;
+			if (message.action == "R") {
+				if (_id == reqId) {
+					requestsSatisfied++;
+					latency += _clock - message.roundSubmitted - 1;
+				}
+				else if (_id < reqId && reqId < right) {
+					requestsSatisfied++;
+					latency += _clock - message.roundSubmitted - 1;
+				}
+				else if (reqId < _id) {
+					sendMessage(left, message);
+				}
+				else {
+					sendMessage(right, message);
+				}
 			}
-			else if (_id < reqId && reqId < right) {
-				//Node gone
+			else if (reqId > _id) {
+				if (reqId < right) {
+					if (right < "ZZZZZZZZZZZZZZZZZZZZZZZZZZZ") {
+						message.reqId = right;
+						sendMessage(reqId, message);
+					}
+					right = reqId;
+				}
+				else {
+					sendMessage(right, message);
+				}
 			}
 			else if (reqId < _id) {
-				sendMessage(left, message);
-			}
-			else {
-				sendMessage(right, message);
-			}
-		}
-		else if (reqId > _id) {
-			if (reqId < right) {
-				if (right < "ZZZZZZZZZZZZZZZZZZZZZZZZZZZ") {
-					message.reqId = right;
-					sendMessage(reqId, message);
+				if (_id > left) {
+					if (left > "MIN") {
+						message.reqId = left;
+						sendMessage(reqId, message);
+					}
+					left = reqId;
 				}
-				right = reqId;
-			}
-			else {
-				sendMessage(right, message);
-			}
-		}
-		else if (reqId < _id) {
-			if (_id > left) {
-				if (left > "MIN") {
-					message.reqId = left;
-					sendMessage(reqId, message);
+				else {
+					sendMessage(left, message);
 				}
-				left = reqId;
-			}
-			else {
-				sendMessage(left, message);
 			}
 		}
-	}
 
-	_inStream.clear();
+		_inStream.clear();
+	}
 }
 
 void LinearCoronaPeer::heartBeat() {
