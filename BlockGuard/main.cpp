@@ -74,7 +74,7 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 	else if (algorithm == "linearChord") {
-		for (int churnRate = 1; churnRate < 6; churnRate++) {
+		for (int churnRate = 0; churnRate < 11; churnRate++) {
 			for (int i = 1; i < 11; i++) {
 				std::ofstream out;
 				std::string file = filePath + "churnRate" + std::to_string(churnRate) + "Test" + std::to_string(i) + ".txt";
@@ -416,7 +416,7 @@ void LinearChord(std::ofstream& logFile, int churnRate) {
 		int selectedNode;
 
 		// Join leave rate
-		if (rand() % 10 < churnRate) {
+		if (rand() % 100 < churnRate) {
 			submittedRequests++;
 			// Leave
 			if (rand() % 2 == 0) {
@@ -495,11 +495,11 @@ void LinearChord(std::ofstream& logFile, int churnRate) {
 		}
 
 	}
-	logFile << "Number of Messages " << numberOfMessages << std::endl;
-	logFile << "Number of Requests Satisfied " << requestsSatisfied << std::endl;
-	logFile << "Number of Pending Requests " << pendingRequests << std::endl;
+	logFile << "Messages " << numberOfMessages << std::endl;
+	logFile << "Satisfied Requests " << requestsSatisfied << std::endl;
+	logFile << "Pending Requests " << pendingRequests << std::endl;
 	logFile << "Latency " << (latency + pendingLatency + droppedLatency) / (pendingRequests + requestsSatisfied + droppedRequests) << std::endl;
-
+	logFile << "Satisfied Latency " << (latency / requestsSatisfied) << std::endl;
 	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
 }
 
