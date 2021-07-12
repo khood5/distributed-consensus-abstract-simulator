@@ -139,8 +139,8 @@ void LinearPeer::preformComputation(){
             else {
                 busy = false;
             }
-            requestsSatisfied++;
-            latency += _clock - message.roundSubmitted - 1;
+            //requestsSatisfied++;
+            //latency += _clock - message.roundSubmitted - 1;
         }
     }
     _inStream.clear();

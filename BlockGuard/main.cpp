@@ -48,7 +48,7 @@ int main(int argc, const char* argv[]) {
 		Example(out);
 	}
 	else if (algorithm == "linear") {
-		for (int churnRate = 3; churnRate < 6; churnRate++) {
+		for (int churnRate = 0; churnRate < 11; churnRate++) {
 			for (int i = 1; i < 11; i++) {
 				std::ofstream out;
 				std::string file = filePath + "churnRate" + std::to_string(churnRate) + "Test" + std::to_string(i) + ".txt";
@@ -61,7 +61,7 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 	else if (algorithm == "linearCorona") {
-		for (int churnRate = 1; churnRate < 6; churnRate++) {
+		for (int churnRate = 0; churnRate < 11; churnRate++) {
 			for (int i = 1; i < 11; i++) {
 				std::ofstream out;
 				std::string file = filePath + "churnRate" + std::to_string(churnRate) + "Test" + std::to_string(i) + ".txt";
@@ -252,12 +252,11 @@ void Linear(std::ofstream& logFile, int churnRate) {
 		}
 
 	}
-	logFile << "Number of Messages " << numberOfMessages << std::endl;
-	logFile << "Number of Requests Satisfied " << requestsSatisfied << std::endl;
-	logFile << "Number of Pending Requests " << pendingRequests << std::endl;
+	logFile << "Messages " << numberOfMessages << std::endl;
+	logFile << "Satisfied Requests " << requestsSatisfied << std::endl;
+	logFile << "Pending Requests " << pendingRequests << std::endl;
 	logFile << "Latency " << (latency + pendingLatency) / (pendingRequests + requestsSatisfied) << std::endl;
-
-	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
+	logFile << "Satisfied Latency " << (latency / requestsSatisfied) << std::endl;
 }
 
 void LinearCorona(std::ofstream& logFile, int churnRate) {
@@ -366,12 +365,11 @@ void LinearCorona(std::ofstream& logFile, int churnRate) {
 		}
 
 	}
-	logFile << "Number of Messages " << numberOfMessages << std::endl;
-	logFile << "Number of Requests Satisfied " << requestsSatisfied << std::endl;
-	logFile << "Number of Pending Requests " << pendingRequests << std::endl;
+	logFile << "Messages " << numberOfMessages << std::endl;
+	logFile << "Satisfied Requests " << requestsSatisfied << std::endl;
+	logFile << "Pending Requests " << pendingRequests << std::endl;
 	logFile << "Latency " << (latency + pendingLatency + droppedLatency) / (pendingRequests + requestsSatisfied + droppedRequests) << std::endl;
-
-	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
+	logFile << "Satisfied Latency " << (latency / requestsSatisfied) << std::endl;
 }
 
 void LinearChord(std::ofstream& logFile, int churnRate) {
@@ -506,7 +504,6 @@ void LinearChord(std::ofstream& logFile, int churnRate) {
 	logFile << "Pending Requests " << pendingRequests << std::endl;
 	logFile << "Latency " << (latency + pendingLatency + droppedLatency) / (pendingRequests + requestsSatisfied + droppedRequests) << std::endl;
 	logFile << "Satisfied Latency " << (latency / requestsSatisfied) << std::endl;
-	logFile << "-- ENDING TEST " << " --" << std::endl; // log the end of the test
 }
 
 vector<int> createLinearUnderlay(int size, vector<string> ids) {
