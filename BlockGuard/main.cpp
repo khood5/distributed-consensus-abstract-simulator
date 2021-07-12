@@ -35,8 +35,8 @@ vector<int> createLinearUnderlay(int size, vector<string> ids);
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
 
-	std::string algorithm = "linearChord";
-	std::string filePath = "linearChord";
+	std::string algorithm = "linearCorona";
+	std::string filePath = "linearCorona";
 
 	if (algorithm == "example") {
 		std::ofstream out;
@@ -126,9 +126,11 @@ void Example(std::ofstream& logFile) {
 void Linear(std::ofstream& logFile, int churnRate) {
 	ByzantineNetwork<LinearMessage, LinearPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
-	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	//system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	system.setToPoisson();
+	system.setAvgDelay(2); 
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
-	
+
 	int Peers = 100 + churnRate * 150;
 	int StartingPeers = 100;
 	int numberOfRounds = 1000;
@@ -157,7 +159,7 @@ void Linear(std::ofstream& logFile, int churnRate) {
 		int selectedNode;
 
 		// Join leave rate
-		if (rand() % 10 < churnRate) {
+		if (rand() % 100 < churnRate) {
 			submittedRequests++;
 			// Leave
 			if (rand() % 2 == 0) {
@@ -261,7 +263,9 @@ void Linear(std::ofstream& logFile, int churnRate) {
 void LinearCorona(std::ofstream& logFile, int churnRate) {
 	ByzantineNetwork<LinearCoronaMessage, LinearCoronaPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
-	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	//system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	system.setToPoisson();
+	system.setAvgDelay(2); 
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
 	int Peers = 100 + churnRate * 150;
 	int StartingPeers = 100;
@@ -292,7 +296,7 @@ void LinearCorona(std::ofstream& logFile, int churnRate) {
 		int selectedNode;
 
 		// Join leave rate
-		if (rand() % 10 < churnRate) {
+		if (rand() % 100 < churnRate) {
 			submittedRequests++;
 			// Leave
 			if (rand() % 2 == 0) {
@@ -373,7 +377,9 @@ void LinearCorona(std::ofstream& logFile, int churnRate) {
 void LinearChord(std::ofstream& logFile, int churnRate) {
 	ByzantineNetwork<LinearChordMessage, LinearChordPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
-	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	//system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	system.setToPoisson();
+	system.setAvgDelay(2);
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
 	int Peers = 100 + churnRate * 150;
 	int StartingPeers = 100;
