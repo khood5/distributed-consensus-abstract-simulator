@@ -1,0 +1,68 @@
+{
+  "experiments": [
+    {
+      "algorithm": "example",
+      "logFile": "example1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 5,
+        "totalPeers": 5
+      },
+      "tests": 1,
+      "rounds": 3
+    },
+    {
+      "algorithm": "example",
+      "logFile": "cout",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 3,
+        "totalPeers": 3
+      },
+      "tests": 1,
+      "rounds": 3
+    },
+    {
+      "algorithm": "example",
+      "logFile": "cout",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "userList",
+        "initialPeers": 3,
+        "totalPeers": 3,
+        "list": {
+          "0": [ 1, 2 ],
+          "1": [ 2 ]
+        }
+      },
+      "tests": 1,
+      "rounds": 3
+    },
+    {
+      "algorithm": "bitcoin",
+      "logFile": "cout",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 1,
+      "rounds": 100
+    }
+  ]
+}
